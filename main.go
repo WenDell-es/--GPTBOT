@@ -117,7 +117,7 @@ func receive(w http.ResponseWriter, r *http.Request) {
 				s += send2gpt3method1(data.Message, data.Group_id)
 			}
 
-			logger.Infoln("qu:" + data.Message)
+			logger.Infoln("qu:"+data.Message, data.Group_id, data.User_id)
 			logger.Infoln("re:" + s)
 
 			re, _ := json.Marshal(toQQ{Message_type: "group", Group_id: data.Group_id, Message: s})
@@ -145,7 +145,7 @@ func receive(w http.ResponseWriter, r *http.Request) {
 				s += send2gpt3method1(data.Message, data.User_id)
 			}
 
-			logger.Infoln("qu:" + data.Message)
+			logger.Infoln("qu:"+data.Message, data.User_id)
 			logger.Infoln("re:" + s)
 
 			re, _ := json.Marshal(toQQ{Message_type: "private", User_id: data.User_id, Message: s})
