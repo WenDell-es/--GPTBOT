@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -54,7 +54,7 @@ func send2gpt(s string, id int) string {
 		return err.Error()
 	}
 	defer r.Body.Close()
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		logrus.Error(err)
 		return err.Error()
@@ -105,7 +105,7 @@ func receive(w http.ResponseWriter, r *http.Request) {
 				fmt.Println("re:" + s)
 
 				if !strings.Contains(s, `https://chat1.yqcloud.top`) {
-					re, _ := json.Marshal(rsp{Message_type: "group", Group_id: data.Group_id, Message: s})
+					re, _ := json.Marshal(rsp{Message_type: "private", User_id: data.User_id, Message: s})
 					http.Post(`http://127.0.0.1:5700/send_msg`, "application/json", bytes.NewReader(re))
 					return
 				}
