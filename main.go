@@ -34,9 +34,10 @@ func send2gpt3method1(s string, id int) string {
 		Network bool   `json:"network"`
 		Prompt  string `json:"prompt"`
 		UserId  string `json:"userId"`
+		Apikey  string `json:"apikey"`
 	}
 
-	w := req{false, s, "#/chat/" + fmt.Sprint(id)}
+	w := req{false, s, "#/chat/" + fmt.Sprint(id), "8cbb290c-2c7f-44ef-9d14-df2110319da8"}
 	j, _ := json.Marshal(w)
 
 	for {
