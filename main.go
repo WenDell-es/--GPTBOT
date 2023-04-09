@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/sirupsen/logrus"
@@ -47,8 +48,13 @@ func send2gpt3method1(s string, id int) string {
 		return err.Error()
 	}
 
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+
 	for {
-		r, err := http.Post("https://cbjtestapi.binjie.site:7777/api/generateStream", "application/json", bytes.NewReader(j))
+		r, err := client.Post("https://cbjtestapi.binjie.site:7777/api/generateStream", "application/json", bytes.NewReader(j))
 		if err != nil {
 			logger.Errorln(err, string(j))
 			return err.Error()
