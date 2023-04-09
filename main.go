@@ -4,13 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"github.com/sirupsen/logrus"
+	"gptbot/log"
+	"io"
 	"net/http"
 	"strings"
 	"sync"
 )
 
 var character sync.Map
+var logger *logrus.Logger
 
 func myTrim(s string, cut string) string {
 	for i := range s {
@@ -38,11 +41,19 @@ func send2gpt3method1(s string, id int) string {
 	}
 
 	w := req{false, s, "#/chat/" + fmt.Sprint(id), "8cbb290c-2c7f-44ef-9d14-df2110319da8"}
-	j, _ := json.Marshal(w)
+	j, err := json.Marshal(w)
+	if err != nil {
+		logger.Errorln(err, w)
+		return err.Error()
+	}
 
 	for {
-		r, _ := http.Post("https://cbjtestapi.binjie.site:7777/api/generateStream", "application/json", bytes.NewReader(j))
-		ans, _ := ioutil.ReadAll(r.Body)
+		r, err := http.Post("https://cbjtestapi.binjie.site:7777/api/generateStream", "application/json", bytes.NewReader(j))
+		if err != nil {
+			logger.Errorln(err, string(j))
+			return err.Error()
+		}
+		ans, _ := io.ReadAll(r.Body)
 		r.Body.Close()
 
 		if !strings.Contains(string(ans), `https://chat1.yqcloud.top`) {
@@ -66,7 +77,7 @@ func receive(w http.ResponseWriter, r *http.Request) {
 		Message      string `json:"message"`
 	}
 
-	ans, _ := ioutil.ReadAll(r.Body)
+	ans, _ := io.ReadAll(r.Body)
 	r.Body.Close()
 
 	var data fromQQ
@@ -100,11 +111,14 @@ func receive(w http.ResponseWriter, r *http.Request) {
 				s += send2gpt3method1(data.Message, data.Group_id)
 			}
 
-			fmt.Println("qu:" + data.Message)
-			fmt.Println("re:" + s)
+			logger.Infoln("qu:" + data.Message)
+			logger.Infoln("re:" + s)
 
 			re, _ := json.Marshal(toQQ{Message_type: "group", Group_id: data.Group_id, Message: s})
-			http.Post(`http://127.0.0.1:5700/send_msg`, "application/json", bytes.NewReader(re))
+			_, err := http.Post(`http://127.0.0.1:5700/send_msg`, "application/json", bytes.NewReader(re))
+			if err != nil {
+				logger.Errorln(err, w)
+			}
 
 		} else if data.Message_type == "private" {
 			s := ""
@@ -125,16 +139,21 @@ func receive(w http.ResponseWriter, r *http.Request) {
 				s += send2gpt3method1(data.Message, data.User_id)
 			}
 
-			fmt.Println("qu:" + data.Message)
-			fmt.Println("re:" + s)
+			logger.Infoln("qu:" + data.Message)
+			logger.Infoln("re:" + s)
 
 			re, _ := json.Marshal(toQQ{Message_type: "private", User_id: data.User_id, Message: s})
-			http.Post(`http://127.0.0.1:5700/send_msg`, "application/json", bytes.NewReader(re))
+			_, err := http.Post(`http://127.0.0.1:5700/send_msg`, "application/json", bytes.NewReader(re))
+			if err != nil {
+				logger.Errorln(err, w)
+			}
 		}
 	}()
 }
 
 func main() {
+	logger = log.InitLog()
+	logger.Infoln("GPT Bot Start")
 	http.HandleFunc("/", receive)
 	http.ListenAndServe(":5701", nil)
 }
