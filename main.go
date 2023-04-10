@@ -57,6 +57,47 @@ func myTrimWithSpace(s string, cut string) string {
 	return myTrim(s, cut)
 }
 
+func queryGpt(queryBody []byte) string {
+	client := &http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}}
+	request, err := http.NewRequest(Constants.PostMethod, Constants.GptApiUrl, bytes.NewReader(queryBody))
+	if err != nil {
+		logger.Errorln(err)
+		return err.Error()
+	}
+	request.Header.Add("origin", Constants.OriginHost)
+	request.Header.Add("Content-Type", Constants.DefaultContentType)
+
+	var ans []byte
+	// Default retry count is 10, You can add attempts option to change it
+	err = retry.Do(func() error {
+		r, err := client.Do(request)
+		if err != nil {
+			logger.Errorln(err, string(queryBody))
+			return err
+		}
+		defer r.Body.Close()
+		ans, err = io.ReadAll(r.Body)
+		if err != nil {
+			logger.Errorln(err, string(queryBody))
+			return err
+		}
+		for _, unExpectedResp := range Constants.UnExpectedResp {
+			if strings.Contains(string(ans), unExpectedResp) {
+				return errors.New(unExpectedResp)
+			}
+		}
+		return nil
+	},
+	)
+	if err != nil {
+		logger.Errorln(err)
+		return err.Error()
+	}
+	return string(ans)
+}
+
 func send2gpt3method1(s string, id int) string {
 	type req struct {
 		Prompt         string `json:"prompt"`
@@ -91,39 +132,7 @@ func send2gpt3method1(s string, id int) string {
 		logger.Errorln(err, w)
 		return err.Error()
 	}
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: tr}
-
-	var ans []byte
-	// Default retry count is 10, You can add attempts option to change it
-	err = retry.Do(func() error {
-		r, err := client.Post(Constants.GptApiUrl, Constants.DefaultContentType, bytes.NewReader(j))
-		if err != nil {
-			logger.Errorln(err, string(j))
-			return err
-		}
-		defer r.Body.Close()
-		ans, err = io.ReadAll(r.Body)
-		if err != nil {
-			logger.Errorln(err, string(j))
-			return err
-		}
-		for _, unExpectedResp := range Constants.UnExpectedResp {
-			if strings.Contains(string(ans), unExpectedResp) {
-				return errors.New(unExpectedResp)
-			}
-		}
-		return nil
-	},
-	)
-	if err != nil {
-		logger.Errorln(err)
-		return err.Error()
-	}
-	return string(ans)
+	return queryGpt(j)
 }
 
 func receive(w http.ResponseWriter, r *http.Request) {
