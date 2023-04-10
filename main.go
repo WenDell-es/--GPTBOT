@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/avast/retry-go"
 	"github.com/sirupsen/logrus"
+	"gptbot/Constants"
 	"gptbot/log"
 	"io"
 	"net/http"
@@ -89,26 +92,38 @@ func send2gpt3method1(s string, id int) string {
 		return err.Error()
 	}
 
-	fmt.Println(string(j))
-
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
 
-	for {
-		r, err := client.Post("https://cbjtestapi.binjie.site:7777/api/generateStream", "application/json", bytes.NewReader(j))
+	var ans []byte
+	// Default retry count is 10, You can add attempts option to change it
+	err = retry.Do(func() error {
+		r, err := client.Post(Constants.GptApiUrl, Constants.DefaultContentType, bytes.NewReader(j))
 		if err != nil {
 			logger.Errorln(err, string(j))
-			return err.Error()
+			return err
 		}
-		ans, _ := io.ReadAll(r.Body)
-		r.Body.Close()
-
-		if !strings.Contains(string(ans), `https://chat1.yqcloud.top`) {
-			return string(ans)
+		defer r.Body.Close()
+		ans, err = io.ReadAll(r.Body)
+		if err != nil {
+			logger.Errorln(err, string(j))
+			return err
 		}
+		for _, unExpectedResp := range Constants.UnExpectedResp {
+			if strings.Contains(string(ans), unExpectedResp) {
+				return errors.New(unExpectedResp)
+			}
+		}
+		return nil
+	},
+	)
+	if err != nil {
+		logger.Errorln(err)
+		return err.Error()
 	}
+	return string(ans)
 }
 
 func receive(w http.ResponseWriter, r *http.Request) {
@@ -140,7 +155,6 @@ func receive(w http.ResponseWriter, r *http.Request) {
 		message := data.Message
 
 		s := ""
-
 		if messageType == "group" {
 			if !strings.Contains(message, "[CQ:at,qq="+fmt.Sprint(myId)+"]") {
 				return
@@ -150,6 +164,22 @@ func receive(w http.ResponseWriter, r *http.Request) {
 			s += "[CQ:at,qq=" + fmt.Sprint(fromId) + "] "
 
 			chatId = data.Group_id
+		} else if messageType == "private" {
+			s = "您好，因需要技术升级，我们决定暂时关闭私聊功能"
+			logger.Infoln(
+				map[string]string{
+					"fromId":   strconv.Itoa(fromId),
+					"chatId":   strconv.Itoa(chatId),
+					"question": message,
+					"answer":   s,
+				},
+			)
+			re, _ := json.Marshal(toQQ{Message_type: messageType, User_id: chatId, Group_id: chatId, Message: s})
+			_, err := http.Post(`http://127.0.0.1:5700/send_msg`, "application/json", bytes.NewReader(re))
+			if err != nil {
+				logger.Errorln(err, w)
+			}
+			return
 		}
 
 		if strings.Contains(message, "-help") {
