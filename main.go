@@ -9,6 +9,7 @@ import (
 	"gptbot/log"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -215,9 +216,14 @@ refresh后不需要重新设定提示词）
 			s += send2gpt3method1(message, chatId)
 		}
 
-		logger.Infoln("qu:"+message, chatId, fromId)
-		logger.Infoln("re:" + s)
-
+		logger.Infoln(
+			map[string]string{
+				"fromId":   strconv.Itoa(fromId),
+				"chatId":   strconv.Itoa(chatId),
+				"question": message,
+				"answer":   s,
+			},
+		)
 		re, _ := json.Marshal(toQQ{Message_type: messageType, User_id: chatId, Group_id: chatId, Message: s})
 		_, err := http.Post(`http://127.0.0.1:5700/send_msg`, "application/json", bytes.NewReader(re))
 		if err != nil {
