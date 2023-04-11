@@ -216,9 +216,10 @@ refresh后不需要重新设定提示词）
 				temp = v.(userSetting)
 			}
 			temp.system = myTrimWithSpace(message, "-set")
+			temp.id = int(time.Now().UnixMilli())
 			users.Store(chatId, temp)
 
-			s += "set提示词成功！"
+			s += "set提示词成功！重置情景成功"
 		} else if strings.Contains(message, "-show") {
 			v, ok := users.Load(chatId)
 			if ok {
@@ -275,7 +276,7 @@ func main() {
 	logger = log.InitLog()
 	logger.Infoln("GPT Bot Start")
 
-	global.apiKey = "8cbb290c-2c7f-44ef-9d14-df2110319da8"
+	global.apiKey = "ea7952ae-6262-4daf-be97-df4b4c1afe74"
 
 	http.HandleFunc("/", receive)
 	http.ListenAndServe(":5701", nil)
