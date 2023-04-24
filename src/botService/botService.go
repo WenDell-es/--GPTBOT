@@ -79,7 +79,7 @@ func (s *BotServer) handlePrivateMessage(req BotReq) {
 func (s *BotServer) handleGroupMessage(req BotReq) {
 	resp := s.HandleOperation(req)
 	if len(resp) > 0 {
-		if _, err := s.CQHttpClient.SendGroupMessage(req.GroupId, req.UserId, util.GenerateAtCQCode(req.UserId)+resp); err != nil {
+		if _, err := s.CQHttpClient.SendGroupMessage(req.GroupId, req.UserId, resp); err != nil {
 			s.Logger.Errorln(errors.Cause(err))
 		}
 		return
