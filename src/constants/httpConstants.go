@@ -1,4 +1,4 @@
-package Constants
+package constants
 
 const (
 	GptApiUrl          = "https://cbjtestapi.binjie.site:7777/api/generateStream"

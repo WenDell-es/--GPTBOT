@@ -1,0 +1,15 @@
+[OpenAI]
+AuthorizationKey = Your OpenAi api key
+ChatAPIPath = /v1/chat/completions
+Host = https://api.openai.com
+
+[Proxy]
+Enable = true
+ProxyHost = Your proxy host
+
+[CQHttp]
+Host = 127.0.0.1
+Port = 5700
+
+[Service]
+Port = 5701
