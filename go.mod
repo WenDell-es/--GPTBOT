@@ -16,6 +16,7 @@ require (
 	github.com/RomiChan/protobuf v0.1.1-0.20230204044148-2ed269a2e54d // indirect
 	github.com/RomiChan/syncx v0.0.0-20221202055724-5f842c53020e // indirect
 	github.com/RomiChan/websocket v1.4.3-0.20220123145318-307a86b127bc // indirect
+	github.com/antonfisher/nested-logrus-formatter v1.3.1 // indirect
 	github.com/fumiama/go-base16384 v1.6.1 // indirect
 	github.com/fumiama/go-hide-param v0.1.4 // indirect
 	github.com/fumiama/imgsz v0.0.2 // indirect
