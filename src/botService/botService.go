@@ -44,6 +44,12 @@ func (s *BotServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 	if req.MessageType == "group" && !strings.HasPrefix(req.Message, util.GenerateAtCQCode(req.SelfId)) {
 		return
 	}
+	s.Logger.WithFields(logrus.Fields{
+		"message_type": req.MessageType,
+		"user_id":      req.UserId,
+		"group_id":     req.GroupId,
+		"question":     req.Message,
+	}).Infoln()
 	req.Message = util.CutPrefixAndTrimSpace(req.Message, util.GenerateAtCQCode(req.SelfId))
 	switch req.MessageType {
 	case "private":
@@ -79,6 +85,7 @@ func (s *BotServer) handlePrivateMessage(req BotReq) {
 		"question":     req.Message,
 		"answer":       answer,
 		"prompt":       s.GPTClient.GetPrompt(req.UserId),
+		"model":        s.GPTClient.GetModel(req.UserId),
 	}).Infoln()
 }
 
@@ -106,6 +113,7 @@ func (s *BotServer) handleGroupMessage(req BotReq) {
 		"question":     req.Message,
 		"answer":       answer,
 		"prompt":       s.GPTClient.GetPrompt(req.GroupId),
+		"model":        s.GPTClient.GetModel(req.GroupId),
 	}).Infoln()
 }
 
