@@ -7,6 +7,7 @@ import (
 	"github.com/avast/retry-go"
 	"github.com/pkg/errors"
 	"gptbot/src/constants"
+	"gptbot/src/model"
 	"io"
 	"net/http"
 )
@@ -17,8 +18,8 @@ const (
 )
 
 type ChatRequest struct {
-	Model    string     `json:"model"`
-	Messages []*Message `json:"messages"`
+	Model    string           `json:"model"`
+	Messages []*model.Message `json:"messages"`
 }
 
 type ChatResponse struct {
@@ -37,12 +38,12 @@ type Usage struct {
 }
 
 type Choices struct {
-	Message      Message `json:"message"`
-	FinishReason string  `json:"finish_reason"`
-	Index        int     `json:"index"`
+	Message      model.Message `json:"message"`
+	FinishReason string        `json:"finish_reason"`
+	Index        int           `json:"index"`
 }
 
-func (c *ChatGptClient) fetchNextChatAnswer(req ChatRequest) (*Message, error) {
+func (c *ChatGptClient) fetchNextChatAnswer(req ChatRequest) (*model.Message, error) {
 	reqBodyBytes, err := json.Marshal(req)
 	if err != nil {
 		return nil, err

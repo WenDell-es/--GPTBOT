@@ -3,7 +3,6 @@ package goCQHttp
 import (
 	"crypto/tls"
 	"gptbot/src/config"
-	"gptbot/src/util"
 	"net/http"
 )
 
@@ -33,11 +32,11 @@ func (c *CQHttpClient) SendPrivateMessage(userId int64, message string) (int32, 
 	return messageId, err
 }
 
-func (c *CQHttpClient) SendGroupMessage(groupId, userId int64, message string) (int32, error) {
+func (c *CQHttpClient) SendGroupMessage(groupId int64, message string) (int32, error) {
 	messageId, err := c.sendMessage(SendMessageReq{
 		MessageType: "group",
 		GroupId:     groupId,
-		Message:     util.GenerateAtCQCode(userId) + message,
+		Message:     message,
 		AutoEscape:  false,
 	})
 	return messageId, err

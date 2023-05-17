@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"gptbot/src/chat"
 	"gptbot/src/config"
 	"gptbot/src/goCQHttp"
 	"gptbot/src/log"
 	"gptbot/src/openAI/gpt"
-	"gptbot/src/util"
 	"io"
 	"net/http"
-	"strings"
+	"sync"
 )
 
 type BotReq struct {
@@ -27,6 +27,7 @@ type BotServer struct {
 	Logger       *logrus.Logger
 	GPTClient    *gpt.ChatGptClient
 	CQHttpClient *goCQHttp.CQHttpClient
+	Chats        sync.Map
 }
 
 func (s *BotServer) handleRequest(w http.ResponseWriter, r *http.Request) {
@@ -41,16 +42,13 @@ func (s *BotServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 		s.Logger.Infoln(errors.Cause(err))
 		return
 	}
-	if req.MessageType == "group" && !strings.HasPrefix(req.Message, util.GenerateAtCQCode(req.SelfId)) {
-		return
-	}
 	s.Logger.WithFields(logrus.Fields{
 		"message_type": req.MessageType,
 		"user_id":      req.UserId,
 		"group_id":     req.GroupId,
 		"question":     req.Message,
 	}).Infoln()
-	req.Message = util.CutPrefixAndTrimSpace(req.Message, util.GenerateAtCQCode(req.SelfId))
+
 	switch req.MessageType {
 	case "private":
 		s.handlePrivateMessage(req)
@@ -59,23 +57,23 @@ func (s *BotServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.Logger.Errorln("Unsupported message type:", req.MessageType)
 	}
-
+	w.WriteHeader(200)
 }
 
 func (s *BotServer) handlePrivateMessage(req BotReq) {
-	resp := s.HandleOperation(req)
-	if len(resp) > 0 {
-		if _, err := s.CQHttpClient.SendPrivateMessage(req.UserId, resp); err != nil {
-			s.Logger.Errorln(errors.Cause(err))
-		}
+	chatLoader, exist := s.Chats.Load(req.UserId)
+	if !exist {
+		chatLoader = chat.NewChat()
+	}
+	currentChat := chatLoader.(*chat.Chat)
+	s.Chats.Store(req.UserId, currentChat)
+	userMessage := UserMessage{req.UserId, req.UserId, req.Message, req.MessageType, req.SelfId}
+	resp := s.HandleOperation(userMessage, currentChat)
+	if len(resp) <= 0 {
 		return
 	}
-	answer, err := s.GPTClient.QuestGpt(req.UserId, req.Message)
-	if err != nil {
-		s.Logger.Errorln(errors.Cause(err))
-		answer = errors.Cause(err).Error()
-	}
-	if _, err := s.CQHttpClient.SendPrivateMessage(req.UserId, answer); err != nil {
+
+	if _, err := s.CQHttpClient.SendPrivateMessage(req.UserId, resp); err != nil {
 		s.Logger.Errorln(errors.Cause(err))
 	}
 	s.Logger.WithFields(logrus.Fields{
@@ -83,27 +81,27 @@ func (s *BotServer) handlePrivateMessage(req BotReq) {
 		"user_id":      req.UserId,
 		"group_id":     req.GroupId,
 		"question":     req.Message,
-		"answer":       answer,
-		"prompt":       s.GPTClient.GetPrompt(req.UserId),
-		"model":        s.GPTClient.GetModel(req.UserId),
+		"answer":       resp,
+		"prompt":       currentChat.GetPrompt(),
+		"model":        currentChat.GetModel(),
 	}).Infoln()
+
 }
 
 func (s *BotServer) handleGroupMessage(req BotReq) {
-	resp := s.HandleOperation(req)
-	if len(resp) > 0 {
-		if _, err := s.CQHttpClient.SendGroupMessage(req.GroupId, req.UserId, resp); err != nil {
-			s.Logger.Errorln(errors.Cause(err))
-		}
+	chatLoader, exist := s.Chats.Load(req.GroupId)
+	if !exist {
+		chatLoader = chat.NewChat()
+	}
+	currentChat := chatLoader.(*chat.Chat)
+	s.Chats.Store(req.GroupId, currentChat)
+	userMessage := UserMessage{req.GroupId, req.UserId, req.Message, req.MessageType, req.SelfId}
+
+	resp := s.HandleOperation(userMessage, currentChat)
+	if len(resp) <= 0 {
 		return
 	}
-	answer, err := s.GPTClient.QuestGpt(req.GroupId, req.Message)
-
-	if err != nil {
-		s.Logger.Errorln(errors.Cause(err))
-		answer = errors.Cause(err).Error()
-	}
-	if _, err := s.CQHttpClient.SendGroupMessage(req.GroupId, req.UserId, answer); err != nil {
+	if _, err := s.CQHttpClient.SendGroupMessage(req.GroupId, resp); err != nil {
 		s.Logger.Errorln(errors.Cause(err))
 	}
 	s.Logger.WithFields(logrus.Fields{
@@ -111,9 +109,9 @@ func (s *BotServer) handleGroupMessage(req BotReq) {
 		"user_id":      req.UserId,
 		"group_id":     req.GroupId,
 		"question":     req.Message,
-		"answer":       answer,
-		"prompt":       s.GPTClient.GetPrompt(req.GroupId),
-		"model":        s.GPTClient.GetModel(req.GroupId),
+		"answer":       resp,
+		"prompt":       currentChat.GetPrompt(),
+		"model":        currentChat.GetModel(),
 	}).Infoln()
 }
 
