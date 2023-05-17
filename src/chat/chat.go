@@ -25,10 +25,10 @@ type Chat struct {
 func NewChat() *Chat {
 	return &Chat{
 		messages:    []*model.Message{},
-		prompt:      model.Message{Role: "system", Content: "", Name: "system"},
+		prompt:      model.Message{Role: "system", Content: Constants.DefaultPrompt, Name: "system"},
 		mutex:       sync.RWMutex{},
 		model:       Constants.GPT3DOT5MODEL,
-		probability: 0,
+		probability: 50,
 	}
 }
 

@@ -6,11 +6,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"gptbot/src/chat"
 	"gptbot/src/config"
+	Constants "gptbot/src/constants"
 	"gptbot/src/goCQHttp"
 	"gptbot/src/log"
 	"gptbot/src/openAI/gpt"
 	"io"
 	"net/http"
+	"strings"
 	"sync"
 )
 
@@ -72,7 +74,12 @@ func (s *BotServer) handlePrivateMessage(req BotReq) {
 	if len(resp) <= 0 {
 		return
 	}
-
+	for _, str := range Constants.UnExpectedResp {
+		if strings.Contains(resp, str) {
+			resp = "换一个话题吧。。。"
+			break
+		}
+	}
 	if _, err := s.CQHttpClient.SendPrivateMessage(req.UserId, resp); err != nil {
 		s.Logger.Errorln(errors.Cause(err))
 	}
@@ -100,6 +107,12 @@ func (s *BotServer) handleGroupMessage(req BotReq) {
 	resp := s.HandleOperation(userMessage, currentChat)
 	if len(resp) <= 0 {
 		return
+	}
+	for _, str := range Constants.UnExpectedResp {
+		if strings.Contains(resp, str) {
+			resp = "换一个话题吧。。。"
+			break
+		}
 	}
 	if _, err := s.CQHttpClient.SendGroupMessage(req.GroupId, resp); err != nil {
 		s.Logger.Errorln(errors.Cause(err))

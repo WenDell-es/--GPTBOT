@@ -18,6 +18,7 @@ var operationList = []string{
 	"-clearMessages",
 	"-setGroupChatProbability",
 	"-getGroupChatProbability",
+	"-getMessages",
 }
 
 type UserMessage struct {
@@ -43,6 +44,7 @@ func (s *BotServer) HandleOperation(userMessage UserMessage, currentChat *chat.C
 		"-clearMessages":           s.clearMessages,
 		"-setGroupChatProbability": s.setGroupChatProbability,
 		"-getGroupChatProbability": s.getGroupChatProbability,
+		"-getMessages":             s.getMessages,
 	}
 	// 若信息中存在上面的指令前缀，则执行对应方法
 	for _, operation := range operationList {
@@ -69,7 +71,8 @@ func (s *BotServer) getHelpMessage(userMessage UserMessage, chat *chat.Chat) str
 	return "-help 显示帮助\n\n设置当前会话场景：\n-setPrompt 设置提示词\n-showPrompt 显示提示词\n-setGPTModel 设置gpt模型(gpt-3.5-turbo gpt-4)\n-getGPTModel 查看当前gpt model" +
 		"\n-clearMessages 清除聊天记录" +
 		"\n-setGroupChatProbability 设置群聊回复频率，默认0，设置为非0数值后，机器人会对没有at机器人的聊天做出回应。0为不回复，100为回复每一条聊天" +
-		"\n-getGroupChatProbability 查看群聊回复频率"
+		"\n-getGroupChatProbability 查看群聊回复频率" +
+		"\n-getMessages 查看当前记忆区"
 }
 
 func (s *BotServer) setGPTModel(userMessage UserMessage, chat *chat.Chat) string {
@@ -88,6 +91,15 @@ func (s *BotServer) clearMessages(userMessage UserMessage, chat *chat.Chat) stri
 	return "已清除聊天记忆区"
 }
 
+func (s *BotServer) getMessages(userMessage UserMessage, chat *chat.Chat) string {
+	resp := ""
+	messages := chat.GetMessages()
+	for _, message := range messages {
+		resp += message.Name + ":" + message.Content + "\n"
+	}
+	return resp
+}
+
 func (s *BotServer) setGroupChatProbability(userMessage UserMessage, chat *chat.Chat) string {
 	probability, err := strconv.Atoi(userMessage.message)
 	if err != nil {
@@ -102,21 +114,25 @@ func (s *BotServer) getGroupChatProbability(userMessage UserMessage, chat *chat.
 }
 
 func (s *BotServer) questGPT(userMessage UserMessage, currentChat *chat.Chat) string {
+	// 删除所有CQ码，并去除无用空格
+	content := strings.TrimSpace(util.RemoveAllCQCode(userMessage.message))
+	if content == "" {
+		return "" // 空内容直接返回
+	}
 	// 将message放入当前聊天记录中
 	currentChat.AddMessage(&model.Message{
 		Role:    "user",
-		Content: userMessage.message,
+		Content: content,
 		Name:    strconv.FormatInt(userMessage.chatId, 10),
 	})
 
 	// 若满足以下条件：1.群聊。2.没有at机器人。3.随机条件判断失败 则仅记住本次聊天内容，不实际请求open ai
-	if userMessage.messageType == "group" && !strings.HasPrefix(userMessage.message, util.GenerateAtCQCode(userMessage.selfId)) && !currentChat.GroupChatCheck() {
+	if userMessage.messageType == "group" && !util.IsStringAboutMe(userMessage.message, userMessage.selfId) && !currentChat.GroupChatCheck() {
 		return ""
 	}
 	prefix := ""
 	// 若在群聊中at机器人，则机器人的回复也加上at用户的CR代码
-	if userMessage.messageType == "group" && strings.HasPrefix(userMessage.message, util.GenerateAtCQCode(userMessage.selfId)) {
-		userMessage.message = util.CutPrefixAndTrimSpace(userMessage.message, util.GenerateAtCQCode(userMessage.selfId))
+	if userMessage.messageType == "group" && util.IsStringAboutMe(userMessage.message, userMessage.selfId) {
 		prefix = util.GenerateAtCQCode(userMessage.userId)
 	}
 
