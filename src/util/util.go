@@ -17,9 +17,22 @@ func CutPrefixAndTrimSpace(message string, cut string) string {
 	return message
 }
 
+/*
 func RemoveAllCQCode(str string) string {
 	reg := regexp.MustCompile(`\[CQ:[^\]]*\]`)
 	return reg.ReplaceAllString(str, "")
+}
+*/
+
+func RemoveCertainCQCode(str string, selfId string) string {
+	reg1 := regexp.MustCompile(`\[CQ:reply[^\]]*\]`)
+	reg2 := regexp.MustCompile(`\[CQ:at,qq=` + selfId + `\]`)
+	str = reg1.ReplaceAllString(str, "")
+	str = reg2.ReplaceAllString(str, "")
+
+	str = strings.TrimSpace(str)
+
+	return str
 }
 
 func IsStringAboutMe(str string, selfId int64) bool {

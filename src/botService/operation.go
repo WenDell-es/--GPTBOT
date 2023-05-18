@@ -1,6 +1,7 @@
 package botService
 
 import (
+	"fmt"
 	"github.com/pkg/errors"
 	"gptbot/src/chat"
 	"gptbot/src/model"
@@ -92,7 +93,7 @@ func (s *BotServer) clearMessages(userMessage UserMessage, chat *chat.Chat) stri
 }
 
 func (s *BotServer) getMessages(userMessage UserMessage, chat *chat.Chat) string {
-	resp := ""
+	resp := "记忆区：\n"
 	messages := chat.GetMessages()
 	for _, message := range messages {
 		resp += message.Name + ":" + message.Content + "\n"
@@ -115,7 +116,7 @@ func (s *BotServer) getGroupChatProbability(userMessage UserMessage, chat *chat.
 
 func (s *BotServer) questGPT(userMessage UserMessage, currentChat *chat.Chat) string {
 	// 删除所有CQ码，并去除无用空格
-	content := strings.TrimSpace(util.RemoveAllCQCode(userMessage.message))
+	content := strings.TrimSpace(util.RemoveCertainCQCode(userMessage.message, fmt.Sprint(userMessage.selfId)))
 	if content == "" {
 		return "" // 空内容直接返回
 	}
@@ -140,9 +141,9 @@ func (s *BotServer) questGPT(userMessage UserMessage, currentChat *chat.Chat) st
 	answer, err := s.GPTClient.QuestGpt(currentChat)
 	if err != nil {
 		s.Logger.Errorln(errors.Cause(err))
-		// 请求错误则将失败的问题移出聊天记录
-		currentChat.RemoveLastMessage()
-		return err.Error()
+		// 请求错误则清空聊天记录
+		currentChat.ClearMessages()
+		return "你说的话太刺激了，猫猫被吓晕过去了。所以刚刚说到哪了？"
 	}
 	// 将回答放入当前聊天记录中
 	if answer != nil {
