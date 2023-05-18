@@ -28,7 +28,7 @@ func NewChat() *Chat {
 		prompt:      model.Message{Role: "system", Content: Constants.DefaultPrompt, Name: "system"},
 		mutex:       sync.RWMutex{},
 		model:       Constants.GPT3DOT5MODEL,
-		probability: 50,
+		probability: 0,
 	}
 }
 
