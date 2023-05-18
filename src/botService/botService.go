@@ -53,9 +53,9 @@ func (s *BotServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 
 	switch req.MessageType {
 	case "private":
-		s.handlePrivateMessage(req)
+		go s.handlePrivateMessage(req)
 	case "group":
-		s.handleGroupMessage(req)
+		go s.handleGroupMessage(req)
 	default:
 		s.Logger.Errorln("Unsupported message type:", req.MessageType)
 	}
