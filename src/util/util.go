@@ -27,8 +27,10 @@ func RemoveAllCQCode(str string) string {
 func RemoveCertainCQCode(str string, selfId string) string {
 	reg1 := regexp.MustCompile(`\[CQ:reply[^\]]*\]`)
 	reg2 := regexp.MustCompile(`\[CQ:at,qq=` + selfId + `\]`)
+	reg3 := regexp.MustCompile(`\[CQ:image[^\]]*\]`)
 	str = reg1.ReplaceAllString(str, "")
 	str = reg2.ReplaceAllString(str, "")
+	str = reg3.ReplaceAllString(str, "")
 
 	str = strings.TrimSpace(str)
 

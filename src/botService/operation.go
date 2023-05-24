@@ -124,7 +124,7 @@ func (s *BotServer) questGPT(userMessage UserMessage, currentChat *chat.Chat) st
 	currentChat.AddMessage(&model.Message{
 		Role:    "user",
 		Content: content,
-		Name:    strconv.FormatInt(userMessage.chatId, 10),
+		Name:    strconv.FormatInt(userMessage.userId, 10),
 	})
 
 	// 若满足以下条件：1.群聊。2.没有at机器人。3.随机条件判断失败 则仅记住本次聊天内容，不实际请求open ai
