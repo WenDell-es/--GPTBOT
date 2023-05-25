@@ -86,7 +86,7 @@ func init() {
 	matcher := engine.OnMessage(zero.OnlyToMe, zero.OnlyGroup, func(ctx *zero.Ctx) bool {
 		return !zero.HasPicture(ctx)
 	}).SetBlock(true).Limit(ctxext.LimitByGroup)
-	(*zero.Matcher)(matcher).SetPriority(matcher.Priority + 1).Handle(func(ctx *zero.Ctx) {
+	(*zero.Matcher)(matcher).SetPriority(matcher.Priority).Handle(func(ctx *zero.Ctx) {
 		gptBot.GetChat(util.GetChatId(ctx)).AddMessage(&model.Message{
 			Role:    "user",
 			Content: ctx.Event.Message.String(),
