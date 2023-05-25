@@ -1,9 +1,9 @@
-package gpt
+package chatgpt
 
 import (
-	"gptbot/src/chat"
-	"gptbot/src/config"
-	"gptbot/src/model"
+	"gptbot/plugin/gptbot/chat"
+	"gptbot/plugin/gptbot/config"
+	"gptbot/plugin/gptbot/model"
 	"sync"
 )
 
@@ -11,26 +11,24 @@ const (
 	Bearer = "Bearer "
 )
 
-type ChatGptClient struct {
+type Client struct {
 	host             string
 	chatAPIPath      string
 	authorizationKey string
 	chats            sync.Map
 }
 
-func NewChatGptClient(openAiConfig config.OpenAIConfig, proxyConfig config.ProxyConfig) *ChatGptClient {
-	chatGptClient := ChatGptClient{
+func NewChatGptClient(openAiConfig config.ChatGptConfig) *Client {
+	chatGptClient := Client{
 		host:             openAiConfig.Host,
 		chatAPIPath:      openAiConfig.ChatAPIPath,
 		authorizationKey: Bearer + openAiConfig.AuthorizationKey,
 	}
-	if proxyConfig.Enable {
-		chatGptClient.host = proxyConfig.ProxyHost
-	}
+
 	return &chatGptClient
 }
 
-func (c *ChatGptClient) QuestGpt(currentChat *chat.Chat) (*model.Message, error) {
+func (c *Client) QuestGpt(currentChat *chat.Chat) (*model.Message, error) {
 	promptMessage := []*model.Message{currentChat.GetPrompt()}
 
 	chatAnswer, err := c.fetchNextChatAnswer(ChatRequest{

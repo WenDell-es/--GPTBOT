@@ -1,4 +1,4 @@
-package gpt
+package chatgpt
 
 import (
 	"bytes"
@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"github.com/avast/retry-go"
 	"github.com/pkg/errors"
-	"gptbot/src/constants"
-	"gptbot/src/model"
+	"gptbot/plugin/gptbot/constants"
+	"gptbot/plugin/gptbot/model"
 	"io"
 	"net/http"
 )
@@ -43,7 +43,7 @@ type Choices struct {
 	Index        int           `json:"index"`
 }
 
-func (c *ChatGptClient) fetchNextChatAnswer(req ChatRequest) (*model.Message, error) {
+func (c *Client) fetchNextChatAnswer(req ChatRequest) (*model.Message, error) {
 	reqBodyBytes, err := json.Marshal(req)
 	if err != nil {
 		return nil, err

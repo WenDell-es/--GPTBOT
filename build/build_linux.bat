@@ -9,7 +9,7 @@ echo now the GOOS:
 
 echo now the GOARCH:
  go env GOARCH
-go build -o ./gpt_server ../src/main.go
+go build -o ./gpt_server ../main.go
 
 SET CGO_ENABLED=1
 SET GOOS=windows

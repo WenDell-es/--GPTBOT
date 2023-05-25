@@ -4,8 +4,8 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"github.com/pkg/errors"
-	Constants "gptbot/src/constants"
-	"gptbot/src/model"
+	Constants "gptbot/plugin/gptbot/constants"
+	"gptbot/plugin/gptbot/model"
 	"math"
 	"sync"
 )
