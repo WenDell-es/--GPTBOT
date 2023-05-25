@@ -12,15 +12,22 @@ import (
 	"strings"
 	"time"
 	// 以下是相关插件，不要改变插件import的顺序
-	_ "github.com/FloatTech/ZeroBot-Plugin/console"                 // 1. 更改控制台属性
-	"github.com/FloatTech/ZeroBot-Plugin/kanban"                    // 2. 打印 banner
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/bilibili"         // 3. b站相关
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/kfccrazythursday" // 4. 疯狂星期四
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/omikuji"          // 5. 浅草寺求签
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/qqwife"           // 6. 一群一天一夫一妻制群老婆
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/setutime"         // 7. 来份涩图
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/wife"             // 8. 抽老婆
-	_ "gptbot/plugin/gptbot"                                        // 9. chatgpt 机器人
+	_ "github.com/FloatTech/ZeroBot-Plugin/console"
+	"github.com/FloatTech/ZeroBot-Plugin/kanban"
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/baidu"
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/bilibili"
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/dress"
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/genshin"
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/gif"
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/kfccrazythursday"
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/omikuji"
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/qqwife"
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/setutime"
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/shindan"
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/wife"
+
+	// 最低优先级
+	_ "gptbot/plugin/gptbot" // chatgpt 机器人
 	// 以上是相关插件，不要改变插件import的顺序
 
 	"github.com/FloatTech/ZeroBot-Plugin/kanban/banner"
@@ -51,7 +58,7 @@ func init() {
 	// 直接写死 URL 时，请更改下面第二个参数
 	url := flag.String("u", "ws://127.0.0.1:6700", "Set Url of WSClient.")
 	// 默认昵称
-	adana := flag.String("n", "椛椛", "Set default nickname.")
+	adana := flag.String("n", "猫娘", "Set default nickname.")
 	prefix := flag.String("p", "/", "Set command prefix.")
 	runcfg := flag.String("c", "", "Run from config file.")
 	save := flag.String("s", "", "Save default config to file and exit.")
