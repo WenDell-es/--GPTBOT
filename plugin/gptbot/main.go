@@ -53,7 +53,7 @@ func init() {
 		ctx.SendChain(message.Text(resp))
 		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("查看gpt模型")
 	})
-	engine.OnCommand("设置gpt模型").SetBlock(true).Handle(func(ctx *zero.Ctx) {
+	engine.OnCommand("设置gpt模型", zero.SuperUserPermission).SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		m := ctx.State["args"].(string)
 		if err := gptBot.GetChat(util.GetChatId(ctx)).SetModel(m); err != nil {
 			ctx.SendChain(message.Text(errors.Wrap(err, "设置gpt模型错误").Error()))
