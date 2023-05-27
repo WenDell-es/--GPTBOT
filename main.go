@@ -54,7 +54,6 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/tiangou"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/tracemoe"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/wife"
-	_ "gptbot/plugin/kokomi"
 	// 最低优先级
 	_ "gptbot/plugin/gptbot" // chatgpt 机器人
 	// 以上是相关插件，不要改变插件import的顺序
@@ -85,7 +84,7 @@ func init() {
 	// 直接写死 AccessToken 时，请更改下面第二个参数
 	token := flag.String("t", "", "Set AccessToken of WSClient.")
 	// 直接写死 URL 时，请更改下面第二个参数
-	url := flag.String("u", "ws://127.0.0.1:6700", "Set Url of WSClient.")
+	url := flag.String("u", "ws://127.0.0.1:9999", "Set Url of WSClient.")
 	// 默认昵称
 	adana := flag.String("n", "猫娘", "Set default nickname.")
 	prefix := flag.String("p", "/", "Set command prefix.")
