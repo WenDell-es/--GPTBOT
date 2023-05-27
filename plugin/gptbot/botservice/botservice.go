@@ -1,6 +1,7 @@
 package botservice
 
 import (
+	"github.com/sirupsen/logrus"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"gptbot/plugin/gptbot/chat"
 	"gptbot/plugin/gptbot/chatgpt"
@@ -42,6 +43,7 @@ func (b *GptBot) Talk(ctx *zero.Ctx) string {
 		currentChat.AddMessage(answer)
 		return answer.Content
 	}
+	logrus.WithFields(logrus.Fields{"Event": ctx.Event, "History": currentChat.GetMessages(), "Prompt": currentChat.GetPrompt().Content, "model": currentChat.GetModel()}).Warnln("gpt api报错, 准备清除记忆并重试", err)
 	// 报错则仅加载最近的一条聊天记录再次尝试
 	currentChat.ClearMessages()
 	currentChat.AddMessage(&model.Message{
@@ -53,6 +55,7 @@ func (b *GptBot) Talk(ctx *zero.Ctx) string {
 	// 依然出错则清空记忆区
 	if answer == nil || err != nil {
 		currentChat.ClearMessages()
+		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "History": currentChat.GetMessages(), "Prompt": currentChat.GetPrompt().Content, "model": currentChat.GetModel()}).Errorln("gpt api报错", err)
 		return "你说的话太刺激了，猫猫被吓晕过去了。所以刚刚说到哪了？"
 	}
 	return answer.Content

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"gptbot/log"
 	"math/rand"
 	"os"
 	"runtime"
@@ -140,6 +141,7 @@ func init() {
 		logrus.Infoln("[main] 配置文件已保存到", *save)
 		os.Exit(0)
 	}
+	log.LogInit()
 }
 
 func main() {

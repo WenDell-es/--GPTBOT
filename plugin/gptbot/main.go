@@ -37,23 +37,32 @@ func init() {
 	gptBot := botservice.NewGptBot(cfg)
 
 	engine.OnCommand("查看提示词").SetBlock(true).Handle(func(ctx *zero.Ctx) {
-		ctx.SendChain(message.Text("当前提示词为：\n\n" + gptBot.GetChat(util.GetChatId(ctx)).GetPrompt().Content))
+		resp := "当前提示词为：\n\n" + gptBot.GetChat(util.GetChatId(ctx)).GetPrompt().Content
+		ctx.SendChain(message.Text(resp))
+		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("查看提示词")
 	})
 	engine.OnCommand("设置提示词").SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		prompt := ctx.State["args"].(string)
 		gptBot.GetChat(util.GetChatId(ctx)).SetPrompt(prompt)
-		ctx.SendChain(message.Text("设置提示词成功，当前提示词为：\n\n" + gptBot.GetChat(util.GetChatId(ctx)).GetPrompt().Content))
+		resp := "设置提示词成功，当前提示词为：\n\n" + gptBot.GetChat(util.GetChatId(ctx)).GetPrompt().Content
+		ctx.SendChain(message.Text(resp))
+		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("设置提示词")
 	})
 	engine.OnCommand("查看gpt模型").SetBlock(true).Handle(func(ctx *zero.Ctx) {
-		ctx.SendChain(message.Text("当前gpt模型为：\n\n" + gptBot.GetChat(util.GetChatId(ctx)).GetModel()))
+		resp := "当前gpt模型为：\n\n" + gptBot.GetChat(util.GetChatId(ctx)).GetModel()
+		ctx.SendChain(message.Text(resp))
+		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("查看gpt模型")
 	})
 	engine.OnCommand("设置gpt模型").SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		m := ctx.State["args"].(string)
 		if err := gptBot.GetChat(util.GetChatId(ctx)).SetModel(m); err != nil {
 			ctx.SendChain(message.Text(errors.Wrap(err, "设置gpt模型错误").Error()))
+			logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": message.Text(errors.Wrap(err, "设置gpt模型错误"))}).Warnln("设置gpt模型错误")
 			return
 		}
-		ctx.SendChain(message.Text("设置gpt模型成功，当前gpt模型为：\n\n" + gptBot.GetChat(util.GetChatId(ctx)).GetModel()))
+		resp := "设置gpt模型成功，当前gpt模型为：\n\n" + gptBot.GetChat(util.GetChatId(ctx)).GetModel()
+		ctx.SendChain(message.Text(resp))
+		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("设置gpt模型")
 	})
 	engine.OnCommand("查看记忆区").SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		messages := gptBot.GetChat(util.GetChatId(ctx)).GetMessages()
@@ -62,14 +71,18 @@ func init() {
 			resp += m.Name + ":" + m.Content + "\n"
 		}
 		ctx.SendChain(message.Text(resp))
+		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("查看记忆区")
+
 	})
 	engine.OnCommand("清空记忆区").SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		gptBot.GetChat(util.GetChatId(ctx)).ClearMessages()
 		ctx.SendChain(message.Text("已清空记忆区"))
-
+		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": "已清空记忆区"}).Infoln("清空记忆区")
 	})
 	engine.OnCommand("查看群回复概率").SetBlock(true).Handle(func(ctx *zero.Ctx) {
-		ctx.SendChain(message.Text("当前群回复概率：", gptBot.GetChat(util.GetChatId(ctx)).GetGroupProbability()))
+		resp := "当前群回复概率：" + strconv.Itoa(gptBot.GetChat(util.GetChatId(ctx)).GetGroupProbability())
+		ctx.SendChain(message.Text(resp))
+		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("查看群回复概率")
 	})
 	engine.OnCommand("设置群回复概率").SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		probStr := ctx.State["args"].(string)
@@ -79,8 +92,9 @@ func init() {
 			return
 		}
 		gptBot.GetChat(util.GetChatId(ctx)).SetGroupProbability(prob)
-		ctx.SendChain(message.Text("设置成功!\n当前群回复概率：", gptBot.GetChat(util.GetChatId(ctx)).GetGroupProbability()))
-
+		resp := "设置成功!\n当前群回复概率：" + strconv.Itoa(gptBot.GetChat(util.GetChatId(ctx)).GetGroupProbability())
+		ctx.SendChain(message.Text(resp))
+		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("设置群回复概率")
 	})
 
 	matcher := engine.OnMessage(zero.OnlyToMe, zero.OnlyGroup, func(ctx *zero.Ctx) bool {
@@ -89,10 +103,12 @@ func init() {
 	(*zero.Matcher)(matcher).SetPriority(matcher.Priority).Handle(func(ctx *zero.Ctx) {
 		gptBot.GetChat(util.GetChatId(ctx)).AddMessage(&model.Message{
 			Role:    "user",
-			Content: ctx.Event.Message.String(),
+			Content: ctx.Event.Message.ExtractPlainText(),
 			Name:    strconv.FormatInt(ctx.Event.UserID, 10),
 		})
-		ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text(gptBot.Talk(ctx)))
+		resp := gptBot.Talk(ctx)
+		ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text(resp))
+		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("群聊回复(AT)")
 	})
 
 	matcher = engine.OnMessage(zero.OnlyGroup, func(ctx *zero.Ctx) bool {
@@ -102,13 +118,17 @@ func init() {
 		currentChat := gptBot.GetChat(util.GetChatId(ctx))
 		currentChat.AddMessage(&model.Message{
 			Role:    "user",
-			Content: ctx.Event.Message.String(),
+			Content: ctx.Event.Message.ExtractPlainText(),
 			Name:    strconv.FormatInt(ctx.Event.UserID, 10),
 		})
 		if !currentChat.GroupChatCheck() {
+			logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": ""}).Infoln("群聊忽略")
 			return
 		}
-		ctx.SendChain(message.Text(gptBot.Talk(ctx)))
+		resp := gptBot.Talk(ctx)
+		ctx.SendChain(message.Text(resp))
+		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": ""}).Infoln("群聊回复")
+
 	})
 
 	matcher = engine.OnMessage(zero.OnlyPrivate, func(ctx *zero.Ctx) bool {
@@ -117,7 +137,7 @@ func init() {
 	(*zero.Matcher)(matcher).SetPriority(matcher.Priority + 1).Handle(func(ctx *zero.Ctx) {
 		gptBot.GetChat(util.GetChatId(ctx)).AddMessage(&model.Message{
 			Role:    "user",
-			Content: ctx.Event.Message.String(),
+			Content: ctx.Event.Message.ExtractPlainText(),
 			Name:    strconv.FormatInt(ctx.Event.UserID, 10),
 		})
 		ctx.SendChain(message.Text(gptBot.Talk(ctx)))
