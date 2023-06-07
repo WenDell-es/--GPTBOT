@@ -38,7 +38,7 @@ func (b *GptBot) Talk(ctx *zero.Ctx) string {
 	currentChat := b.GetChat(id)
 	answer, err := b.GPTClient.QuestGpt(currentChat)
 	// 无报错直接返回
-	if answer != nil && err == nil {
+	if answer != nil && err == nil && answer.Content != "" {
 		answer.Name = strconv.FormatInt(ctx.Event.SelfID, 10)
 		currentChat.AddMessage(answer)
 		return answer.Content

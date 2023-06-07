@@ -127,7 +127,7 @@ func init() {
 		}
 		resp := gptBot.Talk(ctx)
 		ctx.SendChain(message.Text(resp))
-		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": ""}).Infoln("群聊回复")
+		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("群聊回复")
 
 	})
 
@@ -140,6 +140,8 @@ func init() {
 			Content: ctx.Event.Message.ExtractPlainText(),
 			Name:    strconv.FormatInt(ctx.Event.UserID, 10),
 		})
-		ctx.SendChain(message.Text(gptBot.Talk(ctx)))
+		resp := gptBot.Talk(ctx)
+		ctx.SendChain(message.Text(resp))
+		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("私聊回复")
 	})
 }

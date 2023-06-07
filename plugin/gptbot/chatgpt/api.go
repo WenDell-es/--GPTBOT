@@ -2,7 +2,6 @@ package chatgpt
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"github.com/avast/retry-go"
 	"github.com/pkg/errors"
@@ -49,7 +48,7 @@ func (c *Client) fetchNextChatAnswer(req ChatRequest) (*model.Message, error) {
 		return nil, err
 	}
 	client := &http.Client{Transport: &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		//TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}}
 	request, err := http.NewRequest(Method, c.host+ApiPath, bytes.NewReader(reqBodyBytes))
 	if err != nil {
@@ -62,6 +61,8 @@ func (c *Client) fetchNextChatAnswer(req ChatRequest) (*model.Message, error) {
 	if err = retry.Do(func() error {
 		r, err := client.Do(request)
 		if err != nil {
+			s := err.Error()
+			println(s)
 			return err
 		}
 		defer r.Body.Close()
