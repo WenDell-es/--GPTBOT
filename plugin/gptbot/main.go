@@ -97,9 +97,7 @@ func init() {
 		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("设置群回复概率")
 	})
 
-	matcher := engine.OnMessage(zero.OnlyToMe, zero.OnlyGroup, func(ctx *zero.Ctx) bool {
-		return !zero.HasPicture(ctx)
-	}).SetBlock(true).Limit(ctxext.LimitByGroup)
+	matcher := engine.OnMessage(zero.OnlyToMe, zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup)
 	(*zero.Matcher)(matcher).SetPriority(matcher.Priority).Handle(func(ctx *zero.Ctx) {
 		gptBot.GetChat(util.GetChatId(ctx)).AddMessage(&model.Message{
 			Role:    "user",
