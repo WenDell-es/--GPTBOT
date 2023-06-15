@@ -34,7 +34,7 @@ func init() {
 	if err = conf.MapTo(&cfg); err != nil {
 		logrus.Fatalln("解析gpt机器人配置错误", err)
 	}
-	gptBot := botservice.NewGptBot(cfg)
+	gptBot := botservice.NewGptBot(cfg, engine.DataFolder())
 
 	engine.OnCommand("查看提示词").SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		resp := "当前提示词为：\n\n" + gptBot.GetChat(util.GetChatId(ctx)).GetPrompt().Content
@@ -44,6 +44,7 @@ func init() {
 	engine.OnCommand("设置提示词").SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		prompt := ctx.State["args"].(string)
 		gptBot.GetChat(util.GetChatId(ctx)).SetPrompt(prompt)
+		gptBot.Storage.UpdatePrompt(util.GetChatId(ctx), prompt)
 		resp := "设置提示词成功，当前提示词为：\n\n" + gptBot.GetChat(util.GetChatId(ctx)).GetPrompt().Content
 		ctx.SendChain(message.Text(resp))
 		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("设置提示词")
@@ -60,6 +61,7 @@ func init() {
 			logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": message.Text(errors.Wrap(err, "设置gpt模型错误"))}).Warnln("设置gpt模型错误")
 			return
 		}
+		gptBot.Storage.UpdateModel(util.GetChatId(ctx), m)
 		resp := "设置gpt模型成功，当前gpt模型为：\n\n" + gptBot.GetChat(util.GetChatId(ctx)).GetModel()
 		ctx.SendChain(message.Text(resp))
 		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("设置gpt模型")
@@ -92,6 +94,7 @@ func init() {
 			return
 		}
 		gptBot.GetChat(util.GetChatId(ctx)).SetGroupProbability(prob)
+		gptBot.Storage.UpdateProbability(util.GetChatId(ctx), prob)
 		resp := "设置成功!\n当前群回复概率：" + strconv.Itoa(gptBot.GetChat(util.GetChatId(ctx)).GetGroupProbability())
 		ctx.SendChain(message.Text(resp))
 		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("设置群回复概率")

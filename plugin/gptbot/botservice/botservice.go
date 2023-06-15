@@ -7,6 +7,7 @@ import (
 	"gptbot/plugin/gptbot/chatgpt"
 	"gptbot/plugin/gptbot/config"
 	"gptbot/plugin/gptbot/model"
+	"gptbot/plugin/gptbot/sql"
 	"gptbot/plugin/gptbot/util"
 	"strconv"
 	"sync"
@@ -15,12 +16,24 @@ import (
 type GptBot struct {
 	GPTClient *chatgpt.Client
 	Chats     sync.Map
+	Storage   *sql.Storage
 }
 
-func NewGptBot(cfg config.ChatGptConfig) *GptBot {
+func NewGptBot(cfg config.ChatGptConfig, path string) *GptBot {
+	storage := sql.NewStorage(path + "chat.db")
+	chats := sync.Map{}
+	for _, c := range storage.FindAllChats() {
+		botChat := chat.NewChat()
+		botChat.SetPrompt(c.Prompt)
+		botChat.SetModel(c.GptModel)
+		botChat.SetGroupProbability(c.Probability)
+		chats.Store(c.Gid, botChat)
+	}
+
 	return &GptBot{
 		GPTClient: chatgpt.NewChatGptClient(cfg),
-		Chats:     sync.Map{},
+		Chats:     chats,
+		Storage:   storage,
 	}
 }
 
@@ -29,6 +42,8 @@ func (b *GptBot) GetChat(id int64) *chat.Chat {
 	if !exist {
 		chatLoader = chat.NewChat()
 		b.Chats.Store(id, chatLoader)
+		ch := chatLoader.(*chat.Chat)
+		b.Storage.CreateChat(id, ch.GetModel(), ch.GetGroupProbability(), ch.GetPrompt().Content)
 	}
 	return chatLoader.(*chat.Chat)
 }

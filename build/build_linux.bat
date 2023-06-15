@@ -1,6 +1,7 @@
 SET CGO_ENABLED=0
 SET GOOS=linux
 SET GOARCH=amd64
+rm -f ./gpt_server
 echo now the CGO_ENABLED:
  go env CGO_ENABLED
 
@@ -24,3 +25,5 @@ echo now the GOOS:
 
 echo now the GOARCH:
  go env GOARCH
+
+md5sum.exe ./gpt_server
