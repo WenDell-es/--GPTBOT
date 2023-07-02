@@ -17,7 +17,14 @@ import (
 	"image/png"
 	"os"
 	"strings"
+	"sync"
+	"time"
 )
+
+type record struct {
+	Date time.Time
+	Wife wife
+}
 
 type wife struct {
 	Name   string
@@ -32,42 +39,42 @@ func init() {
 		PublicDataFolder: "Wife",
 	}).ApplySingle(ctxext.DefaultSingle)
 	_ = os.MkdirAll(engine.DataFolder()+"wives", 0755)
+
+	userRecords := sync.Map{}
+
 	engine.OnFullMatch("抽老婆").SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
-			cards, err := getWifeCards(engine.DataFolder() + "wife.json")
-			if err != nil {
-				logrus.Errorln(err)
-				ctx.SendChain(
-					message.At(ctx.Event.UserID),
-					message.Text("喵喵喵！老婆池加载失败了喵~~！", err),
-				)
-				return
+			var card wife
+			if rd, ok := userRecords.Load(ctx.Event.UserID); ok &&
+				rd.(record).Date.Format("20060102") == time.Now().Format("20060102") {
+				card = rd.(record).Wife
+			} else {
+				cards, err := getWifeCards(engine.DataFolder() + "wife.json")
+				if err != nil {
+					logrus.Errorln(err)
+					ctx.SendChain(message.At(ctx.Event.UserID), message.Text("喵喵喵！老婆池加载失败了喵~~！", err))
+					return
+				}
+				card = cards[fcext.RandSenderPerDayN(ctx.Event.UserID, len(cards))]
+				userRecords.Store(ctx.Event.UserID, record{
+					Date: time.Now(),
+					Wife: card,
+				})
 			}
 
-			card := cards[fcext.RandSenderPerDayN(ctx.Event.UserID, len(cards))]
 			data, err := os.ReadFile(engine.DataFolder() + "wives/" + card.Name)
 			wifeName, _, _ := strings.Cut(card.Name, ".")
 			if err != nil {
 				logrus.Errorln(err)
-				ctx.SendChain(
-					message.At(ctx.Event.UserID),
-					message.Text("今天的二次元老婆是~【", wifeName, "】哒\n【图片下载失败: ", err, "】"),
-				)
+				ctx.SendChain(message.At(ctx.Event.UserID), message.Text("今天的二次元老婆是~【", wifeName, "】哒\n【图片下载失败: ", err, "】"))
 				return
 			}
-			if id := ctx.SendChain(
-				message.At(ctx.Event.UserID),
-				message.Text("今天的二次元老婆是~【", wifeName, "】哒!\n来自作品【", card.Source, "】哦~"),
-				message.ImageBytes(data),
-			); id.ID() == 0 {
-				ctx.SendChain(
-					message.At(ctx.Event.UserID),
-					message.Text("今天的二次元老婆是~【", wifeName, "】哒\n【图片发送失败, 请联系维护者】"),
-				)
+			if id := ctx.SendChain(message.At(ctx.Event.UserID), message.Text("今天的二次元老婆是~【", wifeName, "】哒!\n来自作品【", card.Source, "】哦~"), message.ImageBytes(data)); id.ID() == 0 {
+				ctx.SendChain(message.At(ctx.Event.UserID), message.Text("今天的二次元老婆是~【", wifeName, "】哒\n【图片发送失败, 请联系维护者】"))
 			}
 		})
 
-	engine.OnFullMatch("添加老婆", zero.AdminPermission, zero.MustProvidePicture).SetBlock(true).
+	engine.OnFullMatch("添加老婆", zero.SuperUserPermission, zero.MustProvidePicture).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
 			addWifeEvent, cancel := ctx.FutureEvent("message", ctx.CheckSession()).Repeat()
 			defer cancel()
@@ -105,12 +112,14 @@ func init() {
 			if err != nil {
 				logrus.Errorln(err)
 				ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text("错误：", err.Error()))
+				os.Remove(picPath)
 				return
 			}
 			err = convertPictureToJpg(picPath)
 			if err != nil {
 				logrus.Errorln(err)
 				ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text("错误：", err.Error()))
+				os.Remove(picPath)
 				return
 			}
 			err = saveWifeFile(engine.DataFolder()+"wife.json", cards)
@@ -126,7 +135,7 @@ func init() {
 			ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text("成功！"))
 		})
 
-	engine.OnFullMatch("删除老婆", zero.AdminPermission).SetBlock(true).
+	engine.OnFullMatch("删除老婆", zero.SuperUserPermission).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
 			deleteWifeEvent, cancel := ctx.FutureEvent("message", ctx.CheckSession()).Repeat()
 			defer cancel()
