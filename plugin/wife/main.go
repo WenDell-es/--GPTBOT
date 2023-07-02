@@ -27,8 +27,10 @@ type record struct {
 }
 
 type wife struct {
-	Name   string
-	Source string
+	Name         string
+	Source       string
+	UploaderName string
+	UploaderId   int64
 }
 
 func init() {
@@ -69,7 +71,7 @@ func init() {
 				ctx.SendChain(message.At(ctx.Event.UserID), message.Text("今天的二次元老婆是~【", wifeName, "】哒\n【图片下载失败: ", err, "】"))
 				return
 			}
-			if id := ctx.SendChain(message.At(ctx.Event.UserID), message.Text("今天的二次元老婆是~【", wifeName, "】哒!\n来自作品【", card.Source, "】哦~"), message.ImageBytes(data)); id.ID() == 0 {
+			if id := ctx.SendChain(message.At(ctx.Event.UserID), message.Text("今天的二次元老婆是~【", wifeName, "】哒!\n来自作品【", card.Source, "】哦~\n上传人是【", card.UploaderName, ",", card.UploaderId, "】呢"), message.ImageBytes(data)); id.ID() == 0 {
 				ctx.SendChain(message.At(ctx.Event.UserID), message.Text("今天的二次元老婆是~【", wifeName, "】哒\n【图片发送失败, 请联系维护者】"))
 			}
 		})
@@ -80,7 +82,7 @@ func init() {
 			defer cancel()
 
 			newWife := wife{}
-			ctx.SendChain(message.At(ctx.Event.UserID), message.Text("请Master大人输入新老婆的名称喵~~"))
+			ctx.SendChain(message.At(ctx.Event.UserID), message.Text("请输入新老婆的名称喵~~"))
 			name := <-addWifeEvent
 			rawName := strings.TrimSpace(name.Event.RawMessage)
 
@@ -88,12 +90,14 @@ func init() {
 			ctx.SendChain(message.At(ctx.Event.UserID), message.Text("接下来请为"+strings.TrimSpace(name.Event.RawMessage)+"添加角色出处哦~"))
 			source := <-addWifeEvent
 			newWife.Source = source.Event.RawMessage
-			ctx.SendChain(message.At(ctx.Event.UserID), message.Text("正在为Master大人录入新老婆信息嗒！\n老婆名字:"+strings.TrimSpace(name.Event.RawMessage)+"\n老婆出处:"+source.Event.RawMessage))
+			ctx.SendChain(message.At(ctx.Event.UserID), message.Text("正在录入新老婆信息嗒！\n老婆名字:"+strings.TrimSpace(name.Event.RawMessage)+"\n老婆出处:"+source.Event.RawMessage))
 			cards, err := getWifeCards(engine.DataFolder() + "wife.json")
 			if len(cards) >= 1000 {
 				ctx.SendChain(message.At(ctx.Event.UserID), message.Text("老婆数量已经达到最大值1000了，不能再添加了"))
 				return
 			}
+			newWife.UploaderName = ctx.Event.Sender.NickName
+			newWife.UploaderId = ctx.Event.UserID
 			if err != nil {
 				logrus.Errorln(err)
 				ctx.SendChain(
@@ -144,7 +148,7 @@ func init() {
 			deleteWifeEvent, cancel := ctx.FutureEvent("message", ctx.CheckSession()).Repeat()
 			defer cancel()
 
-			ctx.SendChain(message.At(ctx.Event.UserID), message.Text("请Master大人输入要删除的角色名称喵~~~"))
+			ctx.SendChain(message.At(ctx.Event.UserID), message.Text("请输入要删除的角色名称喵~~~"))
 			name := <-deleteWifeEvent
 			rawName := strings.TrimSpace(name.Event.RawMessage)
 			picPath := engine.DataFolder() + "wives/" + rawName + ".jpg"
