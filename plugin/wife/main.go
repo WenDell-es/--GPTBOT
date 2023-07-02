@@ -74,7 +74,7 @@ func init() {
 			}
 		})
 
-	engine.OnFullMatch("添加老婆", zero.SuperUserPermission, zero.MustProvidePicture).SetBlock(true).
+	engine.OnFullMatch("添加老婆", zero.MustProvidePicture).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
 			addWifeEvent, cancel := ctx.FutureEvent("message", ctx.CheckSession()).Repeat()
 			defer cancel()
@@ -90,6 +90,10 @@ func init() {
 			newWife.Source = source.Event.RawMessage
 			ctx.SendChain(message.At(ctx.Event.UserID), message.Text("正在为Master大人录入新老婆信息嗒！\n老婆名字:"+strings.TrimSpace(name.Event.RawMessage)+"\n老婆出处:"+source.Event.RawMessage))
 			cards, err := getWifeCards(engine.DataFolder() + "wife.json")
+			if len(cards) >= 1000 {
+				ctx.SendChain(message.At(ctx.Event.UserID), message.Text("老婆数量已经达到最大值1000了，不能再添加了"))
+				return
+			}
 			if err != nil {
 				logrus.Errorln(err)
 				ctx.SendChain(
@@ -135,7 +139,7 @@ func init() {
 			ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text("成功！"))
 		})
 
-	engine.OnFullMatch("删除老婆", zero.SuperUserPermission).SetBlock(true).
+	engine.OnFullMatch("删除老婆").SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
 			deleteWifeEvent, cancel := ctx.FutureEvent("message", ctx.CheckSession()).Repeat()
 			defer cancel()
@@ -212,7 +216,7 @@ func convertPictureToJpg(filePath string) error {
 		}
 	}
 	newBuf := bytes.Buffer{}
-	err = jpeg.Encode(&newBuf, img, &jpeg.Options{Quality: 100})
+	err = jpeg.Encode(&newBuf, img, &jpeg.Options{Quality: 80})
 	if err != nil {
 		return err
 	}
