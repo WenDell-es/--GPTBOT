@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 	// 以下是相关插件，不要改变插件import的顺序
+	_ "gptbot/plugin/madokapicture"
+
 	_ "github.com/FloatTech/ZeroBot-Plugin/console"
 	"github.com/FloatTech/ZeroBot-Plugin/kanban"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/b14"

@@ -12,9 +12,8 @@ require (
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.2
+	github.com/tencentyun/cos-go-sdk-v5 v0.7.42
 	github.com/wdvxdr1123/ZeroBot v1.6.11
-	gorm.io/driver/sqlite v1.5.2
-	gorm.io/gorm v1.25.2-0.20230530020048-26663ab9bf55
 )
 
 require (
@@ -28,6 +27,7 @@ require (
 	github.com/RomiChan/websocket v1.4.3-0.20220227141055-9b2c6168c9c5 // indirect
 	github.com/antchfx/htmlquery v1.2.5 // indirect
 	github.com/antchfx/xpath v1.2.1 // indirect
+	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/corona10/goimagehash v1.1.0 // indirect
 	github.com/disintegration/imaging v1.6.2 // indirect
 	github.com/ericpauley/go-quantize v0.0.0-20200331213906-ae555eb2afa4 // indirect
@@ -45,6 +45,7 @@ require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.6.0 // indirect
+	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/jinzhu/gorm v1.9.16 // indirect
@@ -55,6 +56,8 @@ require (
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mattn/go-sqlite3 v1.14.17 // indirect
+	github.com/mitchellh/mapstructure v1.4.3 // indirect
+	github.com/mozillazg/go-httpheader v0.2.1 // indirect
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
 	github.com/onsi/ginkgo/v2 v2.2.0 // indirect
 	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 // indirect

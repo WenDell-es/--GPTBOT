@@ -36,7 +36,7 @@ type wife struct {
 func init() {
 	engine := control.Register("wife", &ctrl.Options[*zero.Ctx]{
 		DisableOnDefault: false,
-		Help:             "- 抽老婆",
+		Help:             "直接输入抽老婆3个字从老婆池中随机抽一个老婆，一天只能抽一个（东八区0点更新）\n输入添加老婆4个字后可按提示添加老婆到老婆池\n输入删除老婆4个字后可按提示删除老婆",
 		Brief:            "从老婆库抽每日老婆",
 		PublicDataFolder: "Wife",
 	}).ApplySingle(ctxext.DefaultSingle)
