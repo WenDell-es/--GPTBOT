@@ -35,7 +35,8 @@ func init() {
 	engine := control.Register("yuantu", &ctrl.Options[*zero.Ctx]{
 		DisableOnDefault: false,
 		Help: "- 来份圆图  随机发一张魔圆的图\n" +
-			//"- 今日圆图 发送今天图库里新增的图\n" +
+			"- 圆图十连 随机发⑩张魔圆的图\n" +
+			"- 今日圆图 发送今天图库里新增的图\n" +
 			"- 查询圆图数量 查询图库中图片数量\n",
 		Brief:             "随机发一些圆图",
 		PrivateDataFolder: "yuantu",
@@ -90,12 +91,29 @@ func init() {
 				obj := objs[r.Intn(len(objs))]
 				ourl := cosClient.Object.GetObjectURL(obj.Key)
 				go func() {
-					if id := ctx.SendChain(message.Image(ourl.String())); id.ID() == 0 {
-						ctx.SendChain(message.At(ctx.Event.UserID), message.Text("【图片发送失败, 请联系维护者】"))
-					}
+					ctx.SendChain(message.Image(ourl.String()))
 				}()
 			}
 
+		})
+
+	engine.OnFullMatch("今日圆图", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup).
+		Handle(func(ctx *zero.Ctx) {
+			dir := Daily + time.Now().Format("20060102") + "/"
+			objs, err := fetchAllFileInfo(cosClient, dir)
+			if err != nil {
+				logrus.Errorln("获取对象信息错误", err)
+				ctx.SendChain(message.Text("获取对象信息错误 " + err.Error()))
+				return
+			}
+			if len(objs) == 0 {
+				ctx.SendChain(message.Text("今天图库里还没有新增的图呢~"))
+				return
+			}
+			ctx.SendChain(message.Text("今天图库里一共新增了" + strconv.Itoa(len(objs)) + "张图片呢喵~"))
+			for i := 0; i < len(objs); i++ {
+				ctx.SendChain(message.Image(cosClient.Object.GetObjectURL(objs[i].Key).String()))
+			}
 		})
 
 }
@@ -138,7 +156,9 @@ func fetchAllFileInfo(cosClient *cos.Client, prefix string) ([]cos.Object, error
 		isTruncated = v.IsTruncated
 		marker = v.NextMarker
 	}
-	res = res[1:]
+	if len(res) > 0 {
+		res = res[1:]
+	}
 	return res, nil
 }
 
