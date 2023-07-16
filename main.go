@@ -14,6 +14,8 @@ import (
 	"time"
 	// 以下是相关插件，不要改变插件import的顺序
 	_ "gptbot/plugin/madokapicture"
+	_ "gptbot/plugin/spouse"
+	_ "gptbot/store"
 
 	_ "github.com/FloatTech/ZeroBot-Plugin/console"
 	"github.com/FloatTech/ZeroBot-Plugin/kanban"
@@ -55,7 +57,6 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/tarot"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/tiangou"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/tracemoe"
-	_ "gptbot/plugin/wife"
 	// 最低优先级
 	_ "gptbot/plugin/gptbot" // chatgpt 机器人
 	// 以上是相关插件，不要改变插件import的顺序

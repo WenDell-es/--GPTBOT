@@ -5,17 +5,14 @@ import (
 	ctrl "github.com/FloatTech/zbpctrl"
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
-	"github.com/go-ini/ini"
 	"github.com/sirupsen/logrus"
-	"github.com/tencentyun/cos-go-sdk-v5"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
-	"golang.org/x/net/context"
+	"gptbot/store"
 	"hash/crc64"
 	"math/rand"
-	"net/http"
-	"net/url"
 	"strconv"
+	"sync"
 	"time"
 	"unsafe"
 )
@@ -41,15 +38,10 @@ func init() {
 		Brief:             "随机发一些圆图",
 		PrivateDataFolder: "yuantu",
 	}).ApplySingle(ctxext.DefaultSingle)
-	cosClient, err := cosClientInit(engine.DataFolder())
-	if err != nil {
-		logrus.Errorln("cos客户端配置失败", err)
-		return
-	}
 
 	engine.OnFullMatch("查询圆图数量", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {
-			objs, err := fetchAllFileInfo(cosClient, Storage)
+			objs, err := store.GetStoreClient().FetchAllFileInfo(Storage)
 			if err != nil {
 				logrus.Errorln("获取对象信息错误", err)
 				ctx.SendChain(message.Text("获取对象信息错误 " + err.Error()))
@@ -60,16 +52,16 @@ func init() {
 
 	engine.OnFullMatch("来份圆图", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {
-			objs, err := fetchAllFileInfo(cosClient, Storage)
+			objs, err := store.GetStoreClient().FetchAllFileInfo(Storage)
 			if err != nil {
 				logrus.Errorln("获取对象信息错误", err)
 				ctx.SendChain(message.Text("获取对象信息错误 " + err.Error()))
 				return
 			}
 			obj := objs[getRandomNum(len(objs), ctx.Event.UserID)]
-			ourl := cosClient.Object.GetObjectURL(obj.Key)
+			ourl := store.GetStoreClient().GetObjectUrl(obj.Key)
 
-			if id := ctx.SendChain(message.Image(ourl.String())); id.ID() == 0 {
+			if id := ctx.SendChain(message.Image(ourl)); id.ID() == 0 {
 				ctx.SendChain(message.At(ctx.Event.UserID), message.Text("【图片发送失败, 请联系维护者】"))
 			}
 
@@ -77,7 +69,7 @@ func init() {
 
 	engine.OnFullMatch("圆图十连", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {
-			objs, err := fetchAllFileInfo(cosClient, Storage)
+			objs, err := store.GetStoreClient().FetchAllFileInfo(Storage)
 			if err != nil {
 				logrus.Errorln("获取对象信息错误", err)
 				ctx.SendChain(message.Text("获取对象信息错误 " + err.Error()))
@@ -87,12 +79,16 @@ func init() {
 			sum.Write(binary.StringToBytes(time.Now().Format("2006-01-02 15:04:05.000")))
 			sum.Write((*[8]byte)(unsafe.Pointer(&ctx.Event.UserID))[:])
 			r := rand.New(rand.NewSource(int64(sum.Sum64())))
+			wg := sync.WaitGroup{}
 			for i := 0; i < 10; i++ {
 				obj := objs[r.Intn(len(objs))]
-				ourl := cosClient.Object.GetObjectURL(obj.Key)
+				ourl := store.GetStoreClient().GetObjectUrl(obj.Key)
 				go func() {
-					ctx.SendChain(message.Image(ourl.String()))
+					wg.Add(1)
+					ctx.SendChain(message.Image(ourl))
+					wg.Done()
 				}()
+				wg.Wait()
 			}
 
 		})
@@ -100,7 +96,7 @@ func init() {
 	engine.OnFullMatch("今日圆图", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {
 			dir := Daily + time.Now().Format("20060102") + "/"
-			objs, err := fetchAllFileInfo(cosClient, dir)
+			objs, err := store.GetStoreClient().FetchAllFileInfo(dir)
 			if err != nil {
 				logrus.Errorln("获取对象信息错误", err)
 				ctx.SendChain(message.Text("获取对象信息错误 " + err.Error()))
@@ -112,54 +108,10 @@ func init() {
 			}
 			ctx.SendChain(message.Text("今天图库里一共新增了" + strconv.Itoa(len(objs)) + "张图片呢喵~"))
 			for i := 0; i < len(objs); i++ {
-				ctx.SendChain(message.Image(cosClient.Object.GetObjectURL(objs[i].Key).String()))
+				ctx.SendChain(message.Image(store.GetStoreClient().GetObjectUrl(objs[i].Key)))
 			}
 		})
 
-}
-
-func cosClientInit(dataPath string) (*cos.Client, error) {
-	conf, err := ini.Load(dataPath + "conf.ini")
-	if err != nil {
-		return nil, err
-	}
-	cosCfg := &CosCfg{}
-	err = conf.MapTo(cosCfg)
-	if err != nil {
-		return nil, err
-	}
-	u, _ := url.Parse(cosCfg.Host)
-	return cos.NewClient(&cos.BaseURL{BucketURL: u}, &http.Client{
-		Transport: &cos.AuthorizationTransport{
-			SecretID:  cosCfg.SecretID,
-			SecretKey: cosCfg.SecretKey,
-		},
-	}), nil
-}
-
-func fetchAllFileInfo(cosClient *cos.Client, prefix string) ([]cos.Object, error) {
-	var marker string
-	opt := &cos.BucketGetOptions{
-		Prefix:    prefix,
-		Delimiter: "/",
-		MaxKeys:   1000,
-	}
-	res := []cos.Object{}
-	isTruncated := true
-	for isTruncated {
-		opt.Marker = marker
-		v, _, err := cosClient.Bucket.Get(context.Background(), opt)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, v.Contents...)
-		isTruncated = v.IsTruncated
-		marker = v.NextMarker
-	}
-	if len(res) > 0 {
-		res = res[1:]
-	}
-	return res, nil
 }
 
 func getRandomNum(n int, uid int64) int {

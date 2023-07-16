@@ -14,6 +14,7 @@ require (
 	github.com/sirupsen/logrus v1.9.2
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.42
 	github.com/wdvxdr1123/ZeroBot v1.6.11
+	golang.org/x/net v0.4.0
 )
 
 require (
@@ -74,7 +75,6 @@ require (
 	golang.org/x/exp v0.0.0-20221205204356-47842c84f3db // indirect
 	golang.org/x/image v0.3.0 // indirect
 	golang.org/x/mod v0.6.0 // indirect
-	golang.org/x/net v0.4.0 // indirect
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
