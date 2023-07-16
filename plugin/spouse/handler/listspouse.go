@@ -69,7 +69,7 @@ func (h *ListSpouseHandler) SendImage() *ListSpouseHandler {
 	for i := 0; i < len(cards); i++ {
 		h.imgFont.Write(cards[i].Name)
 		num++
-		if num >= 22 {
+		if num >= 23 {
 			msg = append(msg, ctxext.FakeSenderForwardNode(h.mainCtx, message.ImageBytes(h.imgFont.GetImage())))
 			h.imgFont.Clear()
 			num = 0

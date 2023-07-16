@@ -2,9 +2,11 @@ package imageFont
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
+	"gptbot/store"
 	"image"
 	"image/draw"
 	"image/jpeg"
@@ -15,7 +17,7 @@ import (
 const (
 	templatePath = "./imageFont/template.jpg"
 	fontPath     = "./imageFont/simkai.ttf"
-	lineDistance = 250
+	lineDistance = 60
 )
 
 type ImageFont struct {
@@ -32,6 +34,15 @@ var (
 )
 
 func NewImageFont() (*ImageFont, error) {
+	_ = os.MkdirAll("./imageFont/", 0644)
+	_, err := store.GetStoreClient().Object.GetToFile(context.Background(), "imageFont/template.jpg", templatePath, nil)
+	if err != nil {
+		return nil, err
+	}
+	_, err = store.GetStoreClient().Object.GetToFile(context.Background(), "imageFont/simkai.ttf", fontPath, nil)
+	if err != nil {
+		return nil, err
+	}
 	templateFile, err := os.Open(templatePath)
 	if err != nil {
 		return nil, err
@@ -56,9 +67,9 @@ func NewImageFont() (*ImageFont, error) {
 	content.SetClip(newTemplateImage.Bounds())
 	content.SetDst(newTemplateImage)
 	content.SetSrc(image.Black)
-	content.SetDPI(150)
+	content.SetDPI(50)
 
-	content.SetFontSize(80)
+	content.SetFontSize(60)
 	content.SetFont(fontKai)
 
 	return &ImageFont{
@@ -66,8 +77,8 @@ func NewImageFont() (*ImageFont, error) {
 		templateFileImage: templateFileImage,
 		font:              fontKai,
 		content:           content,
-		x:                 200,
-		y:                 200,
+		x:                 20,
+		y:                 50,
 	}, nil
 }
 
@@ -89,14 +100,14 @@ func (f *ImageFont) Clear() {
 	// 将模板图片画到新建的画布上
 	draw.Draw(f.newTemplateImage, f.templateFileImage.Bounds(), f.templateFileImage, f.templateFileImage.Bounds().Min, draw.Over)
 
-	f.y = 200
+	f.y = 50
 	f.content = freetype.NewContext()
 	f.content.SetClip(f.newTemplateImage.Bounds())
 	f.content.SetDst(f.newTemplateImage)
 	f.content.SetSrc(image.Black)
-	f.content.SetDPI(150)
+	f.content.SetDPI(50)
 
-	f.content.SetFontSize(80)
+	f.content.SetFontSize(60)
 	f.content.SetFont(fontKai)
 }
 
