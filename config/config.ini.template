@@ -1,0 +1,9 @@
+[gptbot]
+AuthorizationKey = your key
+ChatAPIPath = /v1/chat/completions
+Host = chatgpt host
+
+[cos]
+Host = your cos host
+SecretID = your SecretID
+SecretKey = your SecretKey

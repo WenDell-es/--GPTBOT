@@ -26,12 +26,12 @@ func init() {
 		PrivateDataFolder: "gptbot",
 	})
 
-	conf, err := ini.Load(engine.DataFolder() + "conf.ini")
+	conf, err := ini.Load("./config/config.ini")
 	if err != nil {
 		logrus.Fatalln("加载gpt机器人配置错误", err)
 	}
 	cfg := config.ChatGptConfig{}
-	if err = conf.MapTo(&cfg); err != nil {
+	if err = conf.Section("gptbot").MapTo(&cfg); err != nil {
 		logrus.Fatalln("解析gpt机器人配置错误", err)
 	}
 	gptBot := botservice.NewGptBot(cfg)

@@ -1,3 +1,0 @@
-AuthorizationKey = Your OpenAi api key
-ChatAPIPath = /v1/chat/completions
-Host = https://api.openai.com
