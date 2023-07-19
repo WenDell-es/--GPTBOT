@@ -8,7 +8,6 @@ import (
 	"gptbot/plugin/spouse/records"
 	"gptbot/plugin/spouse/util"
 	"gptbot/store"
-	"time"
 )
 
 type RandomSpouseHandler struct {
@@ -37,10 +36,8 @@ func NewRandomSpouseHandler(mainCtx *zero.Ctx, spouseType model.Type) *RandomSpo
 }
 
 func (h *RandomSpouseHandler) CheckRecords() *RandomSpouseHandler {
-	if rd, ok := records.UserRecords.Load(h.mainCtx.Event.UserID); ok &&
-		rd.(map[model.Type]records.Record)[h.spouseType].Date.Format("20060102") == time.Now().Format("20060102") {
-		cd := rd.(map[model.Type]records.Record)[h.spouseType].Card
-		h.card = &cd
+	if records.GetSpouseRecorder().HasSpouseToday(h.mainCtx.Event.UserID, h.mainCtx.Event.GroupID, h.spouseType) {
+		h.card = records.GetSpouseRecorder().GetSpouseToday(h.mainCtx.Event.UserID, h.mainCtx.Event.GroupID, h.spouseType)
 	}
 	return h
 }
@@ -67,16 +64,7 @@ func (h *RandomSpouseHandler) FetchRandomCard() *RandomSpouseHandler {
 	cards := append(h.baseCards, h.groupCards...)
 	card := cards[fcext.RandSenderPerDayN(h.mainCtx.Event.UserID, len(cards))]
 	h.card = &card
-
-	rdMap := make(map[model.Type]records.Record)
-	if rd, ok := records.UserRecords.Load(h.mainCtx.Event.UserID); ok {
-		rdMap = rd.(map[model.Type]records.Record)
-	}
-	rdMap[h.spouseType] = records.Record{
-		Date: time.Now(),
-		Card: card,
-	}
-	records.UserRecords.Store(h.mainCtx.Event.UserID, rdMap)
+	records.GetSpouseRecorder().AddSpouseToday(h.mainCtx.Event.UserID, h.mainCtx.Event.GroupID, h.spouseType, &card)
 	return h
 }
 

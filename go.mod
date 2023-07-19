@@ -9,16 +9,16 @@ require (
 	github.com/FloatTech/zbputils v1.6.2-0.20230411114057-4c71136244b2
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/go-ini/ini v1.67.0
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.2
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.42
 	github.com/wdvxdr1123/ZeroBot v1.6.11
-	golang.org/x/net v0.4.0
 )
 
 require (
-	github.com/FloatTech/AnimeAPI v1.6.1-0.20230409024643-f25135dee0da // indirect
+	github.com/FloatTech/AnimeAPI v1.6.1-0.20230428030547-3bd9d5d7f303 // indirect
 	github.com/FloatTech/gg v1.1.3-0.20230226151425-6ea91286ba08 // indirect
 	github.com/FloatTech/imgfactory v0.2.2-0.20230413152719-e101cc3606ef // indirect
 	github.com/FloatTech/rendercard v0.0.10-0.20230223064326-45d29fa4ede9 // indirect
@@ -26,8 +26,8 @@ require (
 	github.com/FloatTech/ttl v0.0.0-20220715042055-15612be72f5b // indirect
 	github.com/RomiChan/syncx v0.0.0-20221202055724-5f842c53020e // indirect
 	github.com/RomiChan/websocket v1.4.3-0.20220227141055-9b2c6168c9c5 // indirect
-	github.com/antchfx/htmlquery v1.2.5 // indirect
-	github.com/antchfx/xpath v1.2.1 // indirect
+	github.com/antchfx/htmlquery v1.3.0 // indirect
+	github.com/antchfx/xpath v1.2.4 // indirect
 	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/corona10/goimagehash v1.1.0 // indirect
 	github.com/disintegration/imaging v1.6.2 // indirect
@@ -43,7 +43,6 @@ require (
 	github.com/fumiama/unibase2n v0.0.0-20221020155353-02876e777430 // indirect
 	github.com/gabriel-vasile/mimetype v1.0.4 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
-	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
@@ -71,13 +70,14 @@ require (
 	github.com/tidwall/gjson v1.14.4 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
-	golang.org/x/crypto v0.4.0 // indirect
+	golang.org/x/crypto v0.11.0 // indirect
 	golang.org/x/exp v0.0.0-20221205204356-47842c84f3db // indirect
 	golang.org/x/image v0.3.0 // indirect
-	golang.org/x/mod v0.6.0 // indirect
-	golang.org/x/sys v0.4.0 // indirect
-	golang.org/x/text v0.6.0 // indirect
-	golang.org/x/tools v0.2.0 // indirect
+	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/net v0.12.0 // indirect
+	golang.org/x/sys v0.10.0 // indirect
+	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/tools v0.6.0 // indirect
 	modernc.org/libc v1.21.5 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.4.0 // indirect
