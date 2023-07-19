@@ -1,6 +1,7 @@
 package store
 
 import (
+	"bytes"
 	"context"
 	"github.com/go-ini/ini"
 	"github.com/sirupsen/logrus"
@@ -103,6 +104,12 @@ func (s *Client) GetObjectBytes(key string) ([]byte, error) {
 
 func (s *Client) UploadObject(filePath, name string) error {
 	_, err := s.Object.PutFromFile(context.Background(), name, filePath, nil)
+	return err
+}
+
+func (s *Client) UploadObjectByBytes(buf []byte, name string) error {
+	f := bytes.NewReader(buf)
+	_, err := s.Object.Put(context.Background(), name, f, nil)
 	return err
 }
 

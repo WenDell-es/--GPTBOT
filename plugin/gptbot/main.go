@@ -43,8 +43,14 @@ func init() {
 	})
 	engine.OnCommand("设置提示词").SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		prompt := ctx.State["args"].(string)
-		gptBot.GetChat(util.GetChatId(ctx)).SetPrompt(prompt)
+		chat := gptBot.GetChat(util.GetChatId(ctx))
+		chat.SetPrompt(prompt)
+		err := util.StoreChat(chat, util.GetChatId(ctx))
 		resp := "设置提示词成功，当前提示词为：\n\n" + gptBot.GetChat(util.GetChatId(ctx)).GetPrompt().Content
+		if err != nil {
+			logrus.Errorln(err, chat, ctx.Event)
+			resp = err.Error()
+		}
 		ctx.SendChain(message.Text(resp))
 		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("设置提示词")
 	})
@@ -55,12 +61,18 @@ func init() {
 	})
 	engine.OnCommand("设置gpt模型", zero.SuperUserPermission).SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		m := ctx.State["args"].(string)
-		if err := gptBot.GetChat(util.GetChatId(ctx)).SetModel(m); err != nil {
+		chat := gptBot.GetChat(util.GetChatId(ctx))
+		if err := chat.SetModel(m); err != nil {
 			ctx.SendChain(message.Text(errors.Wrap(err, "设置gpt模型错误").Error()))
 			logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": message.Text(errors.Wrap(err, "设置gpt模型错误"))}).Warnln("设置gpt模型错误")
 			return
 		}
+		err = util.StoreChat(chat, util.GetChatId(ctx))
 		resp := "设置gpt模型成功，当前gpt模型为：\n\n" + gptBot.GetChat(util.GetChatId(ctx)).GetModel()
+		if err != nil {
+			logrus.Errorln(err, chat, ctx.Event)
+			resp = err.Error()
+		}
 		ctx.SendChain(message.Text(resp))
 		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("设置gpt模型")
 	})
@@ -91,8 +103,14 @@ func init() {
 			ctx.SendChain(message.Text(errors.Wrap(err, "概率无法解析成int").Error()))
 			return
 		}
-		gptBot.GetChat(util.GetChatId(ctx)).SetGroupProbability(prob)
+		chat := gptBot.GetChat(util.GetChatId(ctx))
+		chat.SetGroupProbability(prob)
+		err = util.StoreChat(chat, util.GetChatId(ctx))
 		resp := "设置成功!\n当前群回复概率：" + strconv.Itoa(gptBot.GetChat(util.GetChatId(ctx)).GetGroupProbability())
+		if err != nil {
+			logrus.Errorln(err, chat, ctx.Event)
+			resp = err.Error()
+		}
 		ctx.SendChain(message.Text(resp))
 		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("设置群回复概率")
 	})

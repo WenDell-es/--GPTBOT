@@ -1,27 +1,61 @@
 package botservice
 
 import (
+	"encoding/json"
 	"github.com/sirupsen/logrus"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"gptbot/plugin/gptbot/chat"
 	"gptbot/plugin/gptbot/chatgpt"
 	"gptbot/plugin/gptbot/config"
+	"gptbot/plugin/gptbot/constants"
 	"gptbot/plugin/gptbot/model"
 	"gptbot/plugin/gptbot/util"
+	"gptbot/store"
 	"strconv"
+	"strings"
 	"sync"
 )
 
 type GptBot struct {
 	GPTClient *chatgpt.Client
-	Chats     sync.Map
+	Chats     *sync.Map
 }
 
 func NewGptBot(cfg config.ChatGptConfig) *GptBot {
+	chats := sync.Map{}
+	objs, err := store.GetStoreClient().FetchAllFileInfo(constants.StorePrefix)
+	if err != nil {
+		logrus.Errorln(err)
+		return &GptBot{
+			GPTClient: chatgpt.NewChatGptClient(cfg),
+			Chats:     &chats,
+		}
+	}
+	for _, obj := range objs {
+		buf, err := store.GetStoreClient().GetObjectBytes(obj.Key)
+		if err != nil {
+			logrus.Errorln(err)
+			continue
+		}
+		c := chat.Chat{}
+		err = json.Unmarshal(buf, &c)
+		if err != nil {
+			logrus.Errorln(err)
+			continue
+		}
+		idStr, _ := strings.CutPrefix(obj.Key, constants.StorePrefix)
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			logrus.Errorln(err)
+			continue
+		}
+		chats.Store(id, &c)
+	}
 	return &GptBot{
 		GPTClient: chatgpt.NewChatGptClient(cfg),
-		Chats:     sync.Map{},
+		Chats:     &chats,
 	}
+
 }
 
 func (b *GptBot) GetChat(id int64) *chat.Chat {

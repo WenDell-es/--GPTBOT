@@ -16,26 +16,26 @@ const (
 
 type Chat struct {
 	messages    []*model.Message
-	prompt      model.Message
+	Prompt      model.Message
 	mutex       sync.RWMutex
-	model       string
-	probability int
+	Model       string
+	Probability int
 }
 
 func NewChat() *Chat {
 	return &Chat{
 		messages:    []*model.Message{},
-		prompt:      model.Message{Role: "system", Content: Constants.DefaultPrompt, Name: "system"},
+		Prompt:      model.Message{Role: "system", Content: Constants.DefaultPrompt, Name: "system"},
 		mutex:       sync.RWMutex{},
-		model:       Constants.GPT3DOT5MODEL,
-		probability: 0,
+		Model:       Constants.GPT3DOT5MODEL,
+		Probability: 0,
 	}
 }
 
 func (c *Chat) SetPrompt(prompt string) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	c.prompt = model.Message{
+	c.Prompt = model.Message{
 		Role:    "system",
 		Content: prompt,
 		Name:    "system",
@@ -46,7 +46,7 @@ func (c *Chat) SetPrompt(prompt string) {
 func (c *Chat) GetPrompt() *model.Message {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	return &c.prompt
+	return &c.Prompt
 }
 
 func (c *Chat) SetModel(model string) error {
@@ -54,9 +54,9 @@ func (c *Chat) SetModel(model string) error {
 	defer c.mutex.Unlock()
 	switch model {
 	case Constants.GPT3DOT5MODEL:
-		c.model = Constants.GPT3DOT5MODEL
+		c.Model = Constants.GPT3DOT5MODEL
 	case Constants.GPT4MODEL:
-		c.model = Constants.GPT4MODEL
+		c.Model = Constants.GPT4MODEL
 	default:
 		return errors.New("Unexpected gpt model:" + model)
 	}
@@ -66,7 +66,7 @@ func (c *Chat) SetModel(model string) error {
 func (c *Chat) GetModel() string {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	return c.model
+	return c.Model
 }
 
 func (c *Chat) AddMessage(message *model.Message) {
@@ -95,7 +95,7 @@ func (c *Chat) GroupChatCheck() bool {
 	var n int32
 	_ = binary.Read(rand.Reader, binary.LittleEndian, &n)
 	math.Abs(float64(n % 100))
-	return math.Abs(float64(n%100)) < float64(c.probability)
+	return math.Abs(float64(n%100)) < float64(c.Probability)
 }
 
 func (c *Chat) ClearMessages() {
@@ -107,11 +107,11 @@ func (c *Chat) ClearMessages() {
 func (c *Chat) SetGroupProbability(probability int) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	c.probability = probability
+	c.Probability = probability
 }
 
 func (c *Chat) GetGroupProbability() int {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	return c.probability
+	return c.Probability
 }
