@@ -25,3 +25,5 @@ echo now the GOOS:
 
 echo now the GOARCH:
  go env GOARCH
+
+ certutil -hashfile .\gpt_server  MD5
