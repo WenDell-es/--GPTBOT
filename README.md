@@ -1,21 +1,25 @@
 # --GPTBOT
 LowOfCycles-GPTBOT
 
-一个简单的Http server 调用官方的gpt接口
+一个圆群的ZeroBot框架机器人。使用方式请参照 https://github.com/FloatTech/ZeroBot-Plugin
 
-## main分支为单独的gpt机器人
+该机器人增加了一些功能
+
+- 随机圆图功能，从图库中随机获取一些魔法少女小圆的图片。使用cos存储图库
+- 修改了抽老婆功能
+  - 抽老婆将原数据源中大量不认识的二游角色删除，改为世萌入围角色名单。
+  - 允许群员添加，删除，查看老婆列表
+  - 抽老婆卡池分为两个卡池，一个base卡池供全部群使用，里面是世萌入围角色名单。另一个是群私有卡池，群员添加和删除老婆均为操作群私有卡池，不会对其他群造成影响。
+  - 添加抽老公功能，功能和抽老婆相同，只是卡池换成了男性角色
+- chatgpt机器人，一个群chatgpt机器人。
+  - 直接at机器人就会触发gpt聊天，gpt会有默认最近10句对话的记忆。
+  - 可设置机器人参与群聊，群友发送文字信息会有概率触发机器人来附和你的对话
+
 ### How to start
 
 - 准备一个OPEN AI账号，并取得你的API Key 
-- 准备能够连接国外网络的网络环境.若使用代理服务器，请按下面配置Proxy
-- 准备一个QQ号，并部署go-CQHttp。 参考 [go-CQHttp](https://github.com/Mrs4s/go-cqhttp)
-- 准备配置文件，模板为configuration/conf.template，将后缀名改为.ini。并依次修改以下内容
-  - 将[OpenAi] AuthorizationKey替换为你的open ai api key
-  - [Proxy]一栏中，若你不需要代理，则将enable设置为false，否则请将Host设置为你的代理服务器地址(若需要自行搭建代理服务器，可直接编译proxy/main.go。这是一个简单的Http代理)
-  - [CQHttp]一栏，填写你部署go-CQHttp的IP和监听端口。
-  - [Service]本服务的监听端口，请确保与go-CQHttp中的通信地址一致。默认5701
+- 准备一个腾讯云COS账号作为数据存储用
+- 将config/config.ini.template 去掉.template后缀名
+- 填写里面需要的open ai以及cos的各项信息
 - 运行该程序即可
 
-## zeroBot分支为使用zeroBot框架将gpt bot作为一个子插件
-使用方式请参照 https://github.com/FloatTech/ZeroBot-Plugin
-data/gptbot中存在配置文件模板，将其名改为conf.ini后填写你的api key即可
