@@ -11,7 +11,6 @@ import (
 	"gptbot/store"
 	"math/big"
 	"strconv"
-	"sync"
 	"time"
 )
 
@@ -36,7 +35,8 @@ func init() {
 		Brief:             "随机发一些圆图",
 		PrivateDataFolder: "yuantu",
 	}).ApplySingle(ctxext.DefaultSingle)
-	BufferInit()
+	logrus.Infoln("开始初始化")
+	go BufferInit()
 	engine.OnFullMatch("查询圆图数量", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {
 			logrus.WithFields(logrus.Fields{
@@ -72,15 +72,9 @@ func init() {
 				"groupId": ctx.Event.GroupID,
 			}).Infoln()
 			urls := buffer.GetUrls(10)
-			wg := sync.WaitGroup{}
 			for _, url := range urls {
-				go func(u string) {
-					wg.Add(1)
-					ctx.SendChain(message.Image(u))
-					wg.Done()
-				}(url)
+				ctx.SendChain(message.Image(url))
 			}
-			wg.Wait()
 		})
 
 	engine.OnFullMatch("今日圆图", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup).

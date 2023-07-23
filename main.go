@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"gptbot/log"
 	_ "gptbot/store"
 	"math/rand"
@@ -64,7 +65,6 @@ import (
 
 	"github.com/FloatTech/ZeroBot-Plugin/kanban/banner"
 	"github.com/FloatTech/floatbox/process"
-	"github.com/sirupsen/logrus"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/driver"
 	"github.com/wdvxdr1123/ZeroBot/message"
