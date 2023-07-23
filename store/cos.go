@@ -77,13 +77,13 @@ func (s *Client) FetchAllFileInfo(prefix string) ([]cos.Object, error) {
 		if err != nil {
 			return nil, err
 		}
-		res = append(res, v.Contents...)
+		for _, content := range v.Contents {
+			if content.Size > 0 {
+				res = append(res, content)
+			}
+		}
 		isTruncated = v.IsTruncated
 		marker = v.NextMarker
-	}
-	// 去掉prefix/
-	if len(res) > 0 {
-		res = res[1:]
 	}
 	return res, nil
 }
