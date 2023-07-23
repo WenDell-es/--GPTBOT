@@ -71,6 +71,15 @@ func init() {
 			}
 		})
 
+	engine.OnFullMatch("查看老婆", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup).
+		Handle(func(ctx *zero.Ctx) {
+			handler := commandHandler.NewQuerySpouseHandler(ctx, model.Wife)
+			if handler.CreateEventChan().FetchSpouseName().GetBaseCards().GetGroupCards().CheckCards().SendPicture().Err() != nil {
+				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(handler.Err().Error()))
+				logrus.Errorln(handler.Err().Error())
+			}
+		})
+
 	engine.OnFullMatch("添加老公", zero.OnlyGroup, zero.MustProvidePicture).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {
 			handler := commandHandler.NewAddSpouseHandler(engine.DataFolder(), model.Husband, ctx)
@@ -104,6 +113,15 @@ func init() {
 		Handle(func(ctx *zero.Ctx) {
 			handler := commandHandler.NewListSpouseHandler(ctx, model.Husband)
 			if handler.GetBaseCards().GetGroupCards().GenerateImageFont().SendImage().Err() != nil {
+				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(handler.Err().Error()))
+				logrus.Errorln(handler.Err().Error())
+			}
+		})
+
+	engine.OnFullMatch("查看老公", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup).
+		Handle(func(ctx *zero.Ctx) {
+			handler := commandHandler.NewQuerySpouseHandler(ctx, model.Husband)
+			if handler.CreateEventChan().FetchSpouseName().GetBaseCards().GetGroupCards().CheckCards().SendPicture().Err() != nil {
 				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(handler.Err().Error()))
 				logrus.Errorln(handler.Err().Error())
 			}
