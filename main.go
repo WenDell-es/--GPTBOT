@@ -6,16 +6,17 @@ import (
 	"flag"
 	"fmt"
 	"gptbot/log"
+	_ "gptbot/store"
 	"math/rand"
 	"os"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
+
 	// 以下是相关插件，不要改变插件import的顺序
 	_ "gptbot/plugin/madokapicture"
 	_ "gptbot/plugin/spouse"
-	_ "gptbot/store"
 
 	_ "github.com/FloatTech/ZeroBot-Plugin/console"
 	"github.com/FloatTech/ZeroBot-Plugin/kanban"
@@ -179,9 +180,9 @@ func main() {
 		rand.Seed(time.Now().UnixNano()) //nolint: staticcheck
 	}
 	// 帮助
-	zero.OnFullMatchGroup([]string{"/help", ".help", "菜单"}, zero.OnlyToMe).SetBlock(true).
+	zero.OnFullMatchGroup([]string{"/help", "help", "菜单", "-help"}).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
-			ctx.SendChain(message.Text(banner.Banner, "\n管理发送\"/服务列表\"查看 bot 功能\n发送\"/用法name\"查看功能用法"))
+			ctx.SendChain(message.Text(banner.Banner, "\n发送\"/服务列表\"查看 bot 功能\n发送\"/用法name\"查看功能用法"))
 		})
 	zero.OnFullMatch("查看zbp公告", zero.OnlyToMe).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {

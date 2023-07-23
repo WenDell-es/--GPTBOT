@@ -1,7 +1,7 @@
 package madokapicture
 
 import (
-	"github.com/FloatTech/floatbox/binary"
+	"crypto/rand"
 	ctrl "github.com/FloatTech/zbpctrl"
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
@@ -9,12 +9,15 @@ import (
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"gptbot/store"
-	"hash/crc64"
-	"math/rand"
+	"math/big"
 	"strconv"
 	"sync"
 	"time"
-	"unsafe"
+)
+
+const (
+	Storage = "storage/"
+	Daily   = "daily/"
 )
 
 type CosCfg struct {
@@ -22,11 +25,6 @@ type CosCfg struct {
 	SecretID  string
 	SecretKey string
 }
-
-const (
-	Storage = "storage/"
-	Daily   = "daily/"
-)
 
 func init() {
 	engine := control.Register("yuantu", &ctrl.Options[*zero.Ctx]{
@@ -38,9 +36,14 @@ func init() {
 		Brief:             "随机发一些圆图",
 		PrivateDataFolder: "yuantu",
 	}).ApplySingle(ctxext.DefaultSingle)
-
+	BufferInit()
 	engine.OnFullMatch("查询圆图数量", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {
+			logrus.WithFields(logrus.Fields{
+				"command": "查询圆图数量",
+				"userId":  ctx.Event.UserID,
+				"groupId": ctx.Event.GroupID,
+			}).Infoln()
 			objs, err := store.GetStoreClient().FetchAllFileInfo(Storage)
 			if err != nil {
 				logrus.Errorln("获取对象信息错误", err)
@@ -52,49 +55,41 @@ func init() {
 
 	engine.OnFullMatch("来份圆图", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {
-			objs, err := store.GetStoreClient().FetchAllFileInfo(Storage)
-			if err != nil {
-				logrus.Errorln("获取对象信息错误", err)
-				ctx.SendChain(message.Text("获取对象信息错误 " + err.Error()))
-				return
-			}
-			obj := objs[getRandomNum(len(objs), ctx.Event.UserID)]
-			ourl := store.GetStoreClient().GetObjectUrl(obj.Key)
-
-			if id := ctx.SendChain(message.Image(ourl)); id.ID() == 0 {
-				ctx.SendChain(message.At(ctx.Event.UserID), message.Text("【图片发送失败, 请联系维护者】"))
-			}
-
+			logrus.WithFields(logrus.Fields{
+				"command": "来份圆图",
+				"userId":  ctx.Event.UserID,
+				"groupId": ctx.Event.GroupID,
+			}).Infoln()
+			urls := buffer.GetUrls(1)
+			ctx.SendChain(message.Image(urls[0]))
 		})
 
 	engine.OnFullMatch("圆图十连", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {
-			objs, err := store.GetStoreClient().FetchAllFileInfo(Storage)
-			if err != nil {
-				logrus.Errorln("获取对象信息错误", err)
-				ctx.SendChain(message.Text("获取对象信息错误 " + err.Error()))
-				return
-			}
-			sum := crc64.New(crc64.MakeTable(crc64.ISO))
-			sum.Write(binary.StringToBytes(time.Now().Format("2006-01-02 15:04:05.000")))
-			sum.Write((*[8]byte)(unsafe.Pointer(&ctx.Event.UserID))[:])
-			r := rand.New(rand.NewSource(int64(sum.Sum64())))
+			logrus.WithFields(logrus.Fields{
+				"command": "圆图十连",
+				"userId":  ctx.Event.UserID,
+				"groupId": ctx.Event.GroupID,
+			}).Infoln()
+			urls := buffer.GetUrls(10)
 			wg := sync.WaitGroup{}
-			for i := 0; i < 10; i++ {
-				obj := objs[r.Intn(len(objs))]
-				ourl := store.GetStoreClient().GetObjectUrl(obj.Key)
-				go func() {
+			for _, url := range urls {
+				go func(u string) {
 					wg.Add(1)
-					ctx.SendChain(message.Image(ourl))
+					ctx.SendChain(message.Image(u))
 					wg.Done()
-				}()
-				wg.Wait()
+				}(url)
 			}
-
+			wg.Wait()
 		})
 
 	engine.OnFullMatch("今日圆图", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {
+			logrus.WithFields(logrus.Fields{
+				"command": "今日圆图",
+				"userId":  ctx.Event.UserID,
+				"groupId": ctx.Event.GroupID,
+			}).Infoln()
 			dir := Daily + time.Now().Format("20060102") + "/"
 			objs, err := store.GetStoreClient().FetchAllFileInfo(dir)
 			if err != nil {
@@ -114,10 +109,12 @@ func init() {
 
 }
 
-func getRandomNum(n int, uid int64) int {
-	sum := crc64.New(crc64.MakeTable(crc64.ISO))
-	sum.Write(binary.StringToBytes(time.Now().Format("2006-01-02 15:04:05.000")))
-	sum.Write((*[8]byte)(unsafe.Pointer(&uid))[:])
-	r := rand.New(rand.NewSource(int64(sum.Sum64())))
-	return r.Intn(n)
+func getRandomNum(n int) int {
+	b := new(big.Int).SetInt64(int64(n))
+	i, err := rand.Int(rand.Reader, b)
+	if err != nil {
+		logrus.Errorln(err)
+		return -1
+	}
+	return int(i.Int64())
 }
