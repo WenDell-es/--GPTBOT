@@ -17,6 +17,10 @@ func GetPicturePath(groupId int64, spouseType model.Type) string {
 	return "spouse/" + strconv.FormatInt(groupId, 10) + "/" + spouseType.String() + "/pictures/"
 }
 
+func GetWeightPath(groupId int64, spouseType model.Type) string {
+	return "spouse/" + strconv.FormatInt(groupId, 10) + "/" + spouseType.String() + "/weight.json"
+}
+
 func GetCards(groupId int64, spouseType model.Type) ([]model.Card, error) {
 	exist, err := store.GetStoreClient().IsExist(GetIndexPath(groupId, spouseType))
 	if err != nil {

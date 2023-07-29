@@ -1,10 +1,12 @@
 package handler
 
 import (
-	fcext "github.com/FloatTech/floatbox/ctxext"
+	"encoding/json"
+	"github.com/tencentyun/cos-go-sdk-v5"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"gptbot/plugin/spouse/model"
+	"gptbot/plugin/spouse/random"
 	"gptbot/plugin/spouse/records"
 	"gptbot/plugin/spouse/util"
 	"gptbot/store"
@@ -22,6 +24,8 @@ type randomSpouseInternal struct {
 	card       *model.Card
 	baseCards  []model.Card
 	groupCards []model.Card
+	weights    map[string]float64
+	hasRecord  bool
 }
 
 func (h *RandomSpouseHandler) Err() error {
@@ -38,12 +42,13 @@ func NewRandomSpouseHandler(mainCtx *zero.Ctx, spouseType model.Type) *RandomSpo
 func (h *RandomSpouseHandler) CheckRecords() *RandomSpouseHandler {
 	if records.GetSpouseRecorder().HasSpouseToday(h.mainCtx.Event.UserID, h.mainCtx.Event.GroupID, h.spouseType) {
 		h.card = records.GetSpouseRecorder().GetSpouseToday(h.mainCtx.Event.UserID, h.mainCtx.Event.GroupID, h.spouseType)
+		h.hasRecord = true
 	}
 	return h
 }
 
 func (h *RandomSpouseHandler) GetBaseCards() *RandomSpouseHandler {
-	if h.err != nil || h.card != nil {
+	if h.err != nil || h.hasRecord {
 		return h
 	}
 	h.baseCards, h.err = util.GetCards(int64(0), h.spouseType)
@@ -51,20 +56,45 @@ func (h *RandomSpouseHandler) GetBaseCards() *RandomSpouseHandler {
 }
 
 func (h *RandomSpouseHandler) GetGroupCards() *RandomSpouseHandler {
-	if h.err != nil || h.card != nil {
+	if h.err != nil || h.hasRecord {
 		return h
 	}
 	h.groupCards, h.err = util.GetCards(h.mainCtx.Event.GroupID, h.spouseType)
 	return h
 }
+
+func (h *RandomSpouseHandler) GetGroupWeights() *RandomSpouseHandler {
+	if h.err != nil || h.hasRecord {
+		return h
+	}
+
+	buf, err := store.GetStoreClient().GetObjectBytes(util.GetWeightPath(h.mainCtx.Event.GroupID, h.spouseType))
+	if err != nil && !cos.IsNotFoundError(err) {
+		h.err = err
+		return h
+	}
+	weight := make(map[string]float64)
+	_ = json.Unmarshal(buf, &weight)
+	h.weights = weight
+	return h
+}
 func (h *RandomSpouseHandler) FetchRandomCard() *RandomSpouseHandler {
-	if h.err != nil || h.card != nil {
+	if h.err != nil || h.hasRecord {
 		return h
 	}
 	cards := append(h.baseCards, h.groupCards...)
-	card := cards[fcext.RandSenderPerDayN(h.mainCtx.Event.UserID, len(cards))]
+	card := random.GetRandomCard(cards, h.weights)
 	h.card = &card
 	records.GetSpouseRecorder().AddSpouseToday(h.mainCtx.Event.UserID, h.mainCtx.Event.GroupID, h.spouseType, &card)
+	return h
+}
+
+func (h *RandomSpouseHandler) UploadWeightFileToStore() *RandomSpouseHandler {
+	if h.err != nil || h.hasRecord {
+		return h
+	}
+	weightJsonBytes, _ := json.Marshal(h.weights)
+	h.err = store.GetStoreClient().UploadObjectByBytes(weightJsonBytes, util.GetWeightPath(h.mainCtx.Event.GroupID, h.spouseType))
 	return h
 }
 

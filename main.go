@@ -17,6 +17,7 @@ import (
 
 	// 以下是相关插件，不要改变插件import的顺序
 	_ "gptbot/plugin/madokapicture"
+	//_ "gptbot/plugin/fake"
 	_ "gptbot/plugin/spouse"
 
 	_ "github.com/FloatTech/ZeroBot-Plugin/console"

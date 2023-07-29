@@ -56,7 +56,7 @@ func init() {
 	engine.OnFullMatch("抽老婆", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {
 			handler := commandHandler.NewRandomSpouseHandler(ctx, model.Wife)
-			if handler.CheckRecords().GetBaseCards().GetGroupCards().FetchRandomCard().SendPicture().Err() != nil {
+			if handler.CheckRecords().GetBaseCards().GetGroupCards().GetGroupWeights().FetchRandomCard().UploadWeightFileToStore().SendPicture().Err() != nil {
 				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(handler.Err().Error()))
 				logrus.Errorln(handler.Err().Error())
 			}
@@ -103,7 +103,7 @@ func init() {
 	engine.OnFullMatch("抽老公", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {
 			handler := commandHandler.NewRandomSpouseHandler(ctx, model.Husband)
-			if handler.CheckRecords().GetBaseCards().GetGroupCards().FetchRandomCard().SendPicture().Err() != nil {
+			if handler.CheckRecords().GetBaseCards().GetGroupCards().GetGroupWeights().FetchRandomCard().UploadWeightFileToStore().SendPicture().Err() != nil {
 				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(handler.Err().Error()))
 				logrus.Errorln(handler.Err().Error())
 			}

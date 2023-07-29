@@ -1,13 +1,5 @@
 package model
 
-const (
-	SpousePrefix             = "spouse/"
-	BaseWifeIndexPrefix      = "spouse/base/wife/"
-	BaseHusbandIndexPrefix   = "spouse/base/husband/"
-	BaseWifePicturePrefix    = "spouse/base/wife/pictures/"
-	BaseHusbandPicturePrefix = "spouse/base/husband/pictures/"
-)
-
 type Card struct {
 	Name         string
 	Source       string
