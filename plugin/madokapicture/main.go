@@ -5,6 +5,7 @@ import (
 	ctrl "github.com/FloatTech/zbpctrl"
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
+	"github.com/go-ini/ini"
 	"github.com/sirupsen/logrus"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
@@ -15,9 +16,13 @@ import (
 )
 
 const (
-	Storage = "storage/"
-	Daily   = "daily/"
+	Storage     = "storage/"
+	Daily       = "daily/"
+	SectionName = "bot"
+	DefaultPath = "./config/config.ini"
 )
+
+var SelfId string
 
 type CosCfg struct {
 	Host      string
@@ -26,6 +31,11 @@ type CosCfg struct {
 }
 
 func init() {
+	conf, err := ini.Load(DefaultPath)
+	if err != nil {
+		logrus.Fatalln(err)
+	}
+	SelfId = conf.Section(SectionName).Key("Id").String()
 	engine := control.Register("yuantu", &ctrl.Options[*zero.Ctx]{
 		DisableOnDefault: false,
 		Help: "- 来份圆图  随机发一张魔圆的图\n" +

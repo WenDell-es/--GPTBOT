@@ -19,7 +19,7 @@ var buffer = NewPicBuffer()
 func NewPicBuffer() *PicBuffer {
 	pb := &PicBuffer{
 		Ticker:     time.NewTicker(time.Hour * 6),
-		BufferChan: make(chan string, 30),
+		BufferChan: make(chan string, 50),
 	}
 	return pb
 }
@@ -82,7 +82,7 @@ func (b *PicBuffer) GetUrls(n int) []string {
 func addToQQImageBuffer(url string) {
 	body := make(map[string]string)
 	body["message_type"] = "private"
-	body["user_id"] = "3550182574"
+	body["user_id"] = SelfId
 	body["message"] = "[CQ:image,file=" + url + "]"
 	bytesData, _ := json.Marshal(body)
 	http.Post("http://127.0.0.1:5700/send_msg", "application/json;charset=utf-8", bytes.NewBuffer(bytesData))

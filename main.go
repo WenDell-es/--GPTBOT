@@ -16,8 +16,8 @@ import (
 	"time"
 
 	// 以下是相关插件，不要改变插件import的顺序
-	_ "gptbot/plugin/madokapicture"
 	//_ "gptbot/plugin/fake"
+	_ "gptbot/plugin/madokapicture"
 	_ "gptbot/plugin/spouse"
 
 	_ "github.com/FloatTech/ZeroBot-Plugin/console"
@@ -49,6 +49,7 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/inject"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/jiami"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/kfccrazythursday"
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/lolicon"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/omikuji"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/qqwife"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/realcugan"

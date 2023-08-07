@@ -1,3 +1,6 @@
+[bot]
+Id = qq id
+
 [gptbot]
 AuthorizationKey = your key
 ChatAPIPath = /v1/chat/completions
