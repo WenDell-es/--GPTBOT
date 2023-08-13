@@ -81,6 +81,9 @@ func init() {
 				"userId":  ctx.Event.UserID,
 				"groupId": ctx.Event.GroupID,
 			}).Infoln()
+			if buffer.GetBufferCount() < 10 {
+				ctx.SendChain(message.Text("正在尽全力补充圆图，请等等喵~"))
+			}
 			urls := buffer.GetUrls(10)
 			for _, url := range urls {
 				ctx.SendChain(message.Image(url))

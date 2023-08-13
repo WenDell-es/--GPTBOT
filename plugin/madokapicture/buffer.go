@@ -79,6 +79,10 @@ func (b *PicBuffer) GetUrls(n int) []string {
 	return urls
 }
 
+func (b *PicBuffer) GetBufferCount() int {
+	return len(b.BufferChan)
+}
+
 func addToQQImageBuffer(url string) {
 	body := make(map[string]string)
 	body["message_type"] = "private"
