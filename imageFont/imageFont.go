@@ -35,14 +35,21 @@ var (
 
 func NewImageFont() (*ImageFont, error) {
 	_ = os.MkdirAll("./imageFont/", 0644)
-	_, err := store.GetStoreClient().Object.GetToFile(context.Background(), "imageFont/template.jpg", templatePath, nil)
-	if err != nil {
-		return nil, err
+	_, err := os.Stat(templatePath)
+	if os.IsNotExist(err) {
+		_, err := store.GetStoreClient().Object.GetToFile(context.Background(), "imageFont/template.jpg", templatePath, nil)
+		if err != nil {
+			return nil, err
+		}
 	}
-	_, err = store.GetStoreClient().Object.GetToFile(context.Background(), "imageFont/simkai.ttf", fontPath, nil)
-	if err != nil {
-		return nil, err
+	_, err = os.Stat(fontPath)
+	if os.IsNotExist(err) {
+		_, err = store.GetStoreClient().Object.GetToFile(context.Background(), "imageFont/simkai.ttf", fontPath, nil)
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	templateFile, err := os.Open(templatePath)
 	if err != nil {
 		return nil, err
