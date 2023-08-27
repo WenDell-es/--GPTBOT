@@ -34,6 +34,7 @@ type internal struct {
 	event      <-chan *zero.Ctx
 	cancel     func()
 	groupPath  string
+	gid        int64
 }
 
 func NewAddSpouseHandler(basePath string, spouseType model.Type, mainCtx *zero.Ctx) *AddSpouseHandler {
@@ -46,6 +47,7 @@ func (h *AddSpouseHandler) Err() error {
 
 func (h *AddSpouseHandler) CreateEventChan() *AddSpouseHandler {
 	h.event, h.cancel = h.mainCtx.FutureEvent("message", h.mainCtx.CheckSession()).Repeat()
+	h.gid = h.mainCtx.Event.GroupID
 	return h
 }
 
@@ -70,7 +72,18 @@ func (h *AddSpouseHandler) FetchSpouseSource() *AddSpouseHandler {
 	h.card.Source = strings.TrimSpace(source)
 	h.card.UploaderId = h.mainCtx.Event.UserID
 	h.card.UploaderName = h.mainCtx.Event.Sender.Name()
-	h.card.GroupId = h.mainCtx.Event.GroupID
+	h.card.GroupId = h.gid
+	return h
+}
+
+func (h *AddSpouseHandler) SetBaseMode() *AddSpouseHandler {
+	if h.err != nil {
+		return h
+	}
+	h.card.UploaderId = 0
+	h.card.UploaderName = "system"
+	h.card.GroupId = 0
+	h.gid = 0
 	return h
 }
 
@@ -86,7 +99,7 @@ func (h *AddSpouseHandler) GetGroupCards() *AddSpouseHandler {
 	if h.err != nil {
 		return h
 	}
-	h.groupCards, h.err = util.GetCards(h.mainCtx.Event.GroupID, h.spouseType)
+	h.groupCards, h.err = util.GetCards(h.gid, h.spouseType)
 	return h
 }
 
@@ -111,7 +124,7 @@ func (h *AddSpouseHandler) DownloadPicture() *AddSpouseHandler {
 	}
 	url := h.mainCtx.State["image_url"].([]string)[0]
 
-	h.groupPath, _ = os.MkdirTemp(h.basePath, strconv.FormatInt(h.mainCtx.Event.GroupID, 10))
+	h.groupPath, _ = os.MkdirTemp(h.basePath, strconv.FormatInt(h.gid, 10))
 	h.groupPath += "/"
 	h.err = file.DownloadTo(url, h.groupPath+h.card.Name+".jpg")
 	return h
@@ -129,7 +142,7 @@ func (h *AddSpouseHandler) UploadPictureToStore() *AddSpouseHandler {
 	if h.err != nil {
 		return h
 	}
-	h.err = store.GetStoreClient().UploadObject(h.groupPath+h.card.Name+".jpg", util.GetPicturePath(h.mainCtx.Event.GroupID, h.spouseType)+h.card.Name+".jpg")
+	h.err = store.GetStoreClient().UploadObject(h.groupPath+h.card.Name+".jpg", util.GetPicturePath(h.gid, h.spouseType)+h.card.Name+".jpg")
 	return h
 }
 
@@ -141,7 +154,7 @@ func (h *AddSpouseHandler) UploadIndexFileToStore() *AddSpouseHandler {
 	wifeJsonBytes, _ := json.Marshal(h.groupCards)
 	_ = os.WriteFile(h.groupPath+"index.json", wifeJsonBytes, 0644)
 
-	h.err = store.GetStoreClient().UploadObject(h.groupPath+"index.json", util.GetIndexPath(h.mainCtx.Event.GroupID, h.spouseType))
+	h.err = store.GetStoreClient().UploadObject(h.groupPath+"index.json", util.GetIndexPath(h.gid, h.spouseType))
 	_ = os.RemoveAll(h.groupPath)
 	return h
 }

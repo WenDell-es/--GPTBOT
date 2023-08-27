@@ -42,6 +42,26 @@ func init() {
 				logrus.Errorln(handler.Err().Error())
 			}
 		})
+	// 管理员命令，向公共卡池中添加老婆
+	engine.OnFullMatch("abw", zero.SuperUserPermission, zero.MustProvidePicture).SetBlock(true).Limit(ctxext.LimitByGroup).
+		Handle(func(ctx *zero.Ctx) {
+			handler := commandHandler.NewAddSpouseHandler(engine.DataFolder(), model.Wife, ctx)
+			if handler.CreateEventChan().FetchSpouseName().FetchSpouseSource().SetBaseMode().GetGroupCards().AddNewCard().DownloadPicture().
+				ConvertPicture().UploadPictureToStore().UploadIndexFileToStore().Cancel().NotifyUser().Err() != nil {
+				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(handler.Err().Error()))
+				logrus.Errorln(handler.Err().Error())
+			}
+		})
+	// 管理员命令，向公共卡池中添加老公
+	engine.OnFullMatch("abh", zero.SuperUserPermission, zero.MustProvidePicture).SetBlock(true).Limit(ctxext.LimitByGroup).
+		Handle(func(ctx *zero.Ctx) {
+			handler := commandHandler.NewAddSpouseHandler(engine.DataFolder(), model.Husband, ctx)
+			if handler.CreateEventChan().FetchSpouseName().FetchSpouseSource().SetBaseMode().GetGroupCards().AddNewCard().DownloadPicture().
+				ConvertPicture().UploadPictureToStore().UploadIndexFileToStore().Cancel().NotifyUser().Err() != nil {
+				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(handler.Err().Error()))
+				logrus.Errorln(handler.Err().Error())
+			}
+		})
 
 	engine.OnFullMatch("删除老婆", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {

@@ -8,8 +8,8 @@ import (
 
 // 定义一个减少比例和增加比例，可以根据需要调整
 const (
-	decreaseRatio = 0.5
-	increaseRatio = 0.1
+	decreaseRatio = 0.9
+	increaseRatio = 0.3
 )
 
 func GetRandomCard(cards []model.Card, weight map[string]float64) model.Card {
@@ -21,9 +21,13 @@ func GetRandomCard(cards []model.Card, weight map[string]float64) model.Card {
 func draw(cards []model.Card, weight map[string]float64) int {
 	// 计算所有卡片权重的总和
 	total := 0.0
+	maxWeight := 0.0
+	for _, f := range weight {
+		maxWeight = math.Max(f, maxWeight)
+	}
 	for i := 0; i < len(cards); i++ {
 		if _, ok := weight[cards[i].Name]; !ok {
-			weight[cards[i].Name] = 1
+			weight[cards[i].Name] = maxWeight
 		}
 		total += weight[cards[i].Name]
 	}
