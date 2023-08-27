@@ -16,7 +16,6 @@ import (
 	"time"
 
 	// 以下是相关插件，不要改变插件import的顺序
-	//_ "gptbot/plugin/fake"
 	_ "gptbot/plugin/madokapicture"
 	_ "gptbot/plugin/spouse"
 

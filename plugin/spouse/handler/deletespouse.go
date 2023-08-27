@@ -24,6 +24,7 @@ type DeleteSpouseHandler struct {
 
 type deleteSpouseInternal struct {
 	name       string
+	hash       string
 	groupId    int64
 	baseCards  []model.Card
 	groupCards []model.Card
@@ -78,6 +79,7 @@ func (h *DeleteSpouseHandler) DeleteCardIndex() *DeleteSpouseHandler {
 
 	for i := 0; i < len(h.groupCards); i++ {
 		if h.groupCards[i].Name == h.name {
+			h.hash = h.groupCards[i].Hash
 			h.groupCards = append(h.groupCards[:i], h.groupCards[i+1:]...)
 			h.groupId = h.mainCtx.Event.GroupID
 			return h
@@ -87,6 +89,7 @@ func (h *DeleteSpouseHandler) DeleteCardIndex() *DeleteSpouseHandler {
 	for i := 0; i < len(h.baseCards); i++ {
 		if h.baseCards[i].Name == h.name {
 			if zero.SuperUserPermission(h.mainCtx) {
+				h.hash = h.baseCards[i].Hash
 				h.baseCards = append(h.baseCards[:i], h.baseCards[i+1:]...)
 				h.groupId = int64(0)
 				return h
@@ -104,7 +107,7 @@ func (h *DeleteSpouseHandler) DeletePicture() *DeleteSpouseHandler {
 	if h.err != nil {
 		return h
 	}
-	h.err = store.GetStoreClient().DeleteObject(util.GetPicturePath(h.groupId, h.spouseType) + h.name + ".jpg")
+	h.err = store.GetStoreClient().DeleteObject(util.GetPicturePath(h.groupId, h.spouseType) + h.hash + ".jpg")
 	return h
 }
 
@@ -122,7 +125,7 @@ func (h *DeleteSpouseHandler) UploadIndexFileToStore() *DeleteSpouseHandler {
 	tempath, _ := os.MkdirTemp(h.basePath, strconv.FormatInt(h.mainCtx.Event.GroupID, 10))
 	tempath += "/"
 
-	wifeJsonBytes, _ := json.Marshal(cards)
+	wifeJsonBytes, _ := json.MarshalIndent(cards, "", "  ")
 	_ = os.WriteFile(tempath+"index.json", wifeJsonBytes, 0644)
 
 	h.err = store.GetStoreClient().UploadObject(tempath+"index.json", util.GetIndexPath(h.groupId, h.spouseType))

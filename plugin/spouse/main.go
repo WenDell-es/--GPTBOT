@@ -36,8 +36,8 @@ func init() {
 	engine.OnFullMatch("添加老婆", zero.OnlyGroup, zero.MustProvidePicture).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {
 			handler := commandHandler.NewAddSpouseHandler(engine.DataFolder(), model.Wife, ctx)
-			if handler.CreateEventChan().FetchSpouseName().FetchSpouseSource().GetBaseCards().GetGroupCards().AddNewCard().DownloadPicture().
-				ConvertPicture().UploadPictureToStore().UploadIndexFileToStore().Cancel().NotifyUser().Err() != nil {
+			if handler.CreateEventChan().FetchSpouseName().FetchSpouseSource().DownloadPicture().
+				ConvertPicture().GetBaseCards().GetGroupCards().AddNewCard().UploadPictureToStore().UploadIndexFileToStore().Cancel().NotifyUser().Err() != nil {
 				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(handler.Err().Error()))
 				logrus.Errorln(handler.Err().Error())
 			}
@@ -46,8 +46,8 @@ func init() {
 	engine.OnFullMatch("abw", zero.SuperUserPermission, zero.MustProvidePicture).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {
 			handler := commandHandler.NewAddSpouseHandler(engine.DataFolder(), model.Wife, ctx)
-			if handler.CreateEventChan().FetchSpouseName().FetchSpouseSource().SetBaseMode().GetGroupCards().AddNewCard().DownloadPicture().
-				ConvertPicture().UploadPictureToStore().UploadIndexFileToStore().Cancel().NotifyUser().Err() != nil {
+			if handler.CreateEventChan().FetchSpouseName().FetchSpouseSource().SetBaseMode().DownloadPicture().ConvertPicture().GetGroupCards().AddNewCard().
+				UploadPictureToStore().UploadIndexFileToStore().Cancel().NotifyUser().Err() != nil {
 				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(handler.Err().Error()))
 				logrus.Errorln(handler.Err().Error())
 			}
@@ -56,8 +56,8 @@ func init() {
 	engine.OnFullMatch("abh", zero.SuperUserPermission, zero.MustProvidePicture).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {
 			handler := commandHandler.NewAddSpouseHandler(engine.DataFolder(), model.Husband, ctx)
-			if handler.CreateEventChan().FetchSpouseName().FetchSpouseSource().SetBaseMode().GetGroupCards().AddNewCard().DownloadPicture().
-				ConvertPicture().UploadPictureToStore().UploadIndexFileToStore().Cancel().NotifyUser().Err() != nil {
+			if handler.CreateEventChan().FetchSpouseName().FetchSpouseSource().SetBaseMode().DownloadPicture().
+				ConvertPicture().GetGroupCards().AddNewCard().UploadPictureToStore().UploadIndexFileToStore().Cancel().NotifyUser().Err() != nil {
 				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(handler.Err().Error()))
 				logrus.Errorln(handler.Err().Error())
 			}
@@ -103,8 +103,8 @@ func init() {
 	engine.OnFullMatch("添加老公", zero.OnlyGroup, zero.MustProvidePicture).SetBlock(true).Limit(ctxext.LimitByGroup).
 		Handle(func(ctx *zero.Ctx) {
 			handler := commandHandler.NewAddSpouseHandler(engine.DataFolder(), model.Husband, ctx)
-			if handler.CreateEventChan().FetchSpouseName().FetchSpouseSource().GetBaseCards().GetGroupCards().AddNewCard().DownloadPicture().
-				ConvertPicture().UploadPictureToStore().UploadIndexFileToStore().Cancel().NotifyUser().Err() != nil {
+			if handler.CreateEventChan().FetchSpouseName().FetchSpouseSource().DownloadPicture().
+				ConvertPicture().GetBaseCards().GetGroupCards().AddNewCard().UploadPictureToStore().UploadIndexFileToStore().Cancel().NotifyUser().Err() != nil {
 				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(handler.Err().Error()))
 				logrus.Errorln(handler.Err().Error())
 			}

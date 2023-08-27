@@ -6,6 +6,7 @@ type Card struct {
 	UploaderName string
 	UploaderId   int64
 	GroupId      int64
+	Hash         string
 }
 
 type Type string

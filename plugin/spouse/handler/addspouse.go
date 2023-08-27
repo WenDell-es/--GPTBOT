@@ -2,6 +2,8 @@ package handler
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"github.com/FloatTech/floatbox/file"
 	"github.com/FloatTech/floatbox/process"
@@ -87,6 +89,37 @@ func (h *AddSpouseHandler) SetBaseMode() *AddSpouseHandler {
 	return h
 }
 
+func (h *AddSpouseHandler) DownloadPicture() *AddSpouseHandler {
+	if h.err != nil {
+		return h
+	}
+	url := h.mainCtx.State["image_url"].([]string)[0]
+
+	gp, err := os.MkdirTemp(h.basePath, strconv.FormatInt(h.gid, 10))
+	if err != nil {
+		h.err = err
+		return h
+	}
+	h.groupPath = gp + "/"
+	h.err = file.DownloadTo(url, h.groupPath+h.card.Name+".jpg")
+	return h
+}
+
+func (h *AddSpouseHandler) ConvertPicture() *AddSpouseHandler {
+	if h.err != nil {
+		return h
+	}
+	h.err = convertPictureToJpg(h.groupPath + h.card.Name + ".jpg")
+	buf, err := os.ReadFile(h.groupPath + h.card.Name + ".jpg")
+	if err != nil {
+		h.err = err
+		return h
+	}
+	sum := md5.Sum(buf)
+	h.card.Hash = hex.EncodeToString(sum[:])
+	return h
+}
+
 func (h *AddSpouseHandler) GetBaseCards() *AddSpouseHandler {
 	if h.err != nil {
 		return h
@@ -118,31 +151,11 @@ func (h *AddSpouseHandler) AddNewCard() *AddSpouseHandler {
 	return h
 }
 
-func (h *AddSpouseHandler) DownloadPicture() *AddSpouseHandler {
-	if h.err != nil {
-		return h
-	}
-	url := h.mainCtx.State["image_url"].([]string)[0]
-
-	h.groupPath, _ = os.MkdirTemp(h.basePath, strconv.FormatInt(h.gid, 10))
-	h.groupPath += "/"
-	h.err = file.DownloadTo(url, h.groupPath+h.card.Name+".jpg")
-	return h
-}
-
-func (h *AddSpouseHandler) ConvertPicture() *AddSpouseHandler {
-	if h.err != nil {
-		return h
-	}
-	h.err = convertPictureToJpg(h.groupPath + h.card.Name + ".jpg")
-	return h
-}
-
 func (h *AddSpouseHandler) UploadPictureToStore() *AddSpouseHandler {
 	if h.err != nil {
 		return h
 	}
-	h.err = store.GetStoreClient().UploadObject(h.groupPath+h.card.Name+".jpg", util.GetPicturePath(h.gid, h.spouseType)+h.card.Name+".jpg")
+	h.err = store.GetStoreClient().UploadObject(h.groupPath+h.card.Name+".jpg", util.GetPicturePath(h.gid, h.spouseType)+h.card.Hash+".jpg")
 	return h
 }
 
@@ -150,8 +163,8 @@ func (h *AddSpouseHandler) UploadIndexFileToStore() *AddSpouseHandler {
 	if h.err != nil {
 		return h
 	}
+	wifeJsonBytes, _ := json.MarshalIndent(h.groupCards, "", "  ")
 
-	wifeJsonBytes, _ := json.Marshal(h.groupCards)
 	_ = os.WriteFile(h.groupPath+"index.json", wifeJsonBytes, 0644)
 
 	h.err = store.GetStoreClient().UploadObject(h.groupPath+"index.json", util.GetIndexPath(h.gid, h.spouseType))
@@ -161,6 +174,7 @@ func (h *AddSpouseHandler) UploadIndexFileToStore() *AddSpouseHandler {
 
 func (h *AddSpouseHandler) NotifyUser() *AddSpouseHandler {
 	if h.err != nil {
+		_ = os.RemoveAll(h.groupPath)
 		return h
 	}
 	process.SleepAbout1sTo2s()

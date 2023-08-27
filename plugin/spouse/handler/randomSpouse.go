@@ -102,7 +102,7 @@ func (h *RandomSpouseHandler) SendPicture() *RandomSpouseHandler {
 	if h.err != nil {
 		return h
 	}
-	url := store.GetStoreClient().GetObjectUrl(util.GetPicturePath(h.card.GroupId, h.spouseType) + h.card.Name + ".jpg")
+	url := store.GetStoreClient().GetObjectUrl(util.GetPicturePath(h.card.GroupId, h.spouseType) + h.card.Hash + ".jpg")
 	if id := h.mainCtx.SendChain(
 		message.At(h.mainCtx.Event.UserID),
 		message.Text("今天的二次元"+h.spouseType.String()+"是~【", h.card.Name, "】哒!\n来自作品【", h.card.Source, "】哦~\n上传人是【", h.card.UploaderName, ",", h.card.UploaderId, "】呢"),

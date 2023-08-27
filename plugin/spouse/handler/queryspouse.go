@@ -89,7 +89,7 @@ func (h *QuerySpouseHandler) SendPicture() *QuerySpouseHandler {
 	if h.err != nil {
 		return h
 	}
-	url := store.GetStoreClient().GetObjectUrl(util.GetPicturePath(h.card.GroupId, h.spouseType) + h.card.Name + ".jpg")
+	url := store.GetStoreClient().GetObjectUrl(util.GetPicturePath(h.card.GroupId, h.spouseType) + h.card.Hash + ".jpg")
 	if id := h.mainCtx.SendChain(
 		message.At(h.mainCtx.Event.UserID),
 		message.Text("类别：", h.spouseType.String(), "\n"+
