@@ -93,7 +93,7 @@ func (h *RandomSpouseHandler) UploadWeightFileToStore() *RandomSpouseHandler {
 	if h.err != nil || h.hasRecord {
 		return h
 	}
-	weightJsonBytes, _ := json.Marshal(h.weights)
+	weightJsonBytes, _ := json.MarshalIndent(h.weights, "", "  ")
 	h.err = store.GetStoreClient().UploadObjectByBytes(weightJsonBytes, util.GetWeightPath(h.mainCtx.Event.GroupID, h.spouseType))
 	return h
 }

@@ -73,7 +73,7 @@ func (h *AddSpouseHandler) FetchSpouseSource() *AddSpouseHandler {
 	h.err = err
 	h.card.Source = strings.TrimSpace(source)
 	h.card.UploaderId = h.mainCtx.Event.UserID
-	h.card.UploaderName = h.mainCtx.Event.Sender.Name()
+	h.card.UploaderName = h.mainCtx.Event.Sender.NickName
 	h.card.GroupId = h.gid
 	return h
 }
