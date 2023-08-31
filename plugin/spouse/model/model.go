@@ -14,6 +14,7 @@ type Type string
 const (
 	Wife    Type = "老婆"
 	Husband Type = "老公"
+	Dinner  Type = "低能"
 )
 
 func (g *Type) String() string {
@@ -22,6 +23,8 @@ func (g *Type) String() string {
 		return "老婆"
 	case Husband:
 		return "老公"
+	case Dinner:
+		return "低能"
 	default:
 		return ""
 	}

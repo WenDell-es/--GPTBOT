@@ -44,7 +44,6 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/gif"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/github"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/heisi"
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/image_finder"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/inject"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/jiami"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/kfccrazythursday"
