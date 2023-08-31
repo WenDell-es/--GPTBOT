@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/tencentyun/cos-go-sdk-v5"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
@@ -83,6 +84,10 @@ func (h *RandomSpouseHandler) FetchRandomCard() *RandomSpouseHandler {
 		return h
 	}
 	cards := append(h.baseCards, h.groupCards...)
+	if len(cards) == 0 {
+		h.err = errors.New("目前该卡池里没有角色，请使用 添加" + h.spouseType.String() + " 命令来添加角色")
+		return h
+	}
 	card := random.GetRandomCard(cards, h.weights)
 	h.card = &card
 	records.GetSpouseRecorder().AddSpouseToday(h.mainCtx.Event.UserID, h.mainCtx.Event.GroupID, h.spouseType, &card)
