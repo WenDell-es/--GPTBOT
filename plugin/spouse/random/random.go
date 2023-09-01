@@ -38,6 +38,13 @@ func draw(cards []model.Card, weight map[string]float64) int {
 		}
 		total /= 100
 	}
+	// 防止数值膨胀
+	if total*(1-decreaseRatio) < 1 {
+		for i := 0; i < len(cards); i++ {
+			weight[cards[i].Name] *= 100
+		}
+		total *= 100
+	}
 	for {
 		// 生成一个0到total之间的随机数
 		r := rand.Float64() * total
