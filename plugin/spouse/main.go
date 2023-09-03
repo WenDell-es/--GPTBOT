@@ -17,6 +17,7 @@ const (
 		"抽[老婆|老公] \n" +
 		"添加[老婆|老公]\n" +
 		"删除[老婆|老公]\n" +
+		"更新[老婆|老公]\n" +
 		"[老婆|老公]列表 (查看池子内容)\n" +
 		"查看[老婆|老公] (查看某一个角色具体信息)\n"
 )
@@ -112,6 +113,21 @@ func init() {
 			}
 			handler := commandHandler.NewQuerySpouseHandler(ctx, spouseType)
 			if handler.CreateEventChan().FetchSpouseName().GetBaseCards().GetGroupCards().CheckCards().SendPicture().Err() != nil {
+				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(handler.Err().Error()))
+				logrus.Errorln(handler.Err().Error())
+			}
+		})
+
+	engine.OnRegex(`^更新\s?(.*)$`, zero.OnlyGroup, zero.MustProvidePicture).SetBlock(true).Limit(ctxext.LimitByGroup).
+		Handle(func(ctx *zero.Ctx) {
+			keyword := ctx.State["regex_matched"].([]string)[1]
+			spouseType := model.Type(keyword)
+			if spouseType.String() == "" {
+				return
+			}
+			handler := commandHandler.NewUpdateSpouseHandler(engine.DataFolder(), spouseType, ctx)
+			if handler.CreateEventChan().FetchSpouseName().DownloadPicture().ConvertPicture().GetBaseCards().GetGroupCards().UpdateCard().
+				UploadPictureToStore().UploadIndexFileToStore().Cancel().NotifyUser().Err() != nil {
 				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(handler.Err().Error()))
 				logrus.Errorln(handler.Err().Error())
 			}

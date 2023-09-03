@@ -143,7 +143,7 @@ func (h *AddSpouseHandler) AddNewCard() *AddSpouseHandler {
 	allCards := append(h.baseCards, h.groupCards...)
 	for _, card := range allCards {
 		if card.Name == h.card.Name {
-			h.err = errors.New(h.spouseType.String() + h.card.Name + "已经存在啦!")
+			h.err = errors.New(h.spouseType.String() + h.card.Name + "已经存在啦! 你可以用 查看" + h.spouseType.String() + " 命令来查询信息哦~")
 			return h
 		}
 	}

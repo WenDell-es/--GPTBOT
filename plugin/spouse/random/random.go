@@ -8,7 +8,7 @@ import (
 
 // 定义一个减少比例和增加比例，可以根据需要调整
 const (
-	decreaseRatio = 0.9
+	decreaseRatio = 0.99
 	increaseRatio = 0.3
 )
 
@@ -34,16 +34,16 @@ func draw(cards []model.Card, weight map[string]float64) int {
 	// 防止数值膨胀
 	if total*(1+increaseRatio) > math.MaxFloat64/2 {
 		for i := 0; i < len(cards); i++ {
-			weight[cards[i].Name] /= 100
+			weight[cards[i].Name] /= 1000
 		}
-		total /= 100
+		total /= 1000
 	}
 	// 防止数值膨胀
 	if total*(1-decreaseRatio) < 1 {
 		for i := 0; i < len(cards); i++ {
-			weight[cards[i].Name] *= 100
+			weight[cards[i].Name] *= 1000
 		}
-		total *= 100
+		total *= 1000
 	}
 	for {
 		// 生成一个0到total之间的随机数
