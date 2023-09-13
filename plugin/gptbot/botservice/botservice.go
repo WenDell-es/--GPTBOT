@@ -38,11 +38,19 @@ func NewGptBot(cfg config.ChatGptConfig) *GptBot {
 			continue
 		}
 		c := chat.Chat{}
-		err = json.Unmarshal(buf, &c)
+		s := struct {
+			Prompt      model.Message
+			Probability int
+			Model       string
+		}{}
+		err = json.Unmarshal(buf, &s)
 		if err != nil {
 			logrus.Errorln(err)
 			continue
 		}
+		c.Model = s.Model
+		c.Probability = s.Probability
+		c.Prompt = s.Prompt
 		idStr, _ := strings.CutPrefix(obj.Key, constants.StorePrefix)
 		id, err := strconv.ParseInt(idStr, 10, 64)
 		if err != nil {
