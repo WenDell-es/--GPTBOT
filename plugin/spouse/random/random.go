@@ -67,8 +67,16 @@ func draw(cards []model.Card, weight map[string]float64) int {
 }
 
 func update(cards []model.Card, weight map[string]float64, i int) {
+	minVal := math.MaxFloat64
+	for j := 0; j < len(cards); j++ {
+		if _, ok := weight[cards[j].Name]; !ok {
+			continue
+		}
+		minVal = math.Min(minVal, weight[cards[j].Name])
+	}
 
 	// 把被抽中的卡片权重乘以(1 - 减少比例)
+	weight[cards[i].Name] = minVal
 	weight[cards[i].Name] *= 1 - decreaseRatio
 	// 把其他没有被抽中的卡片权重乘以(1 + 增加比例)
 	for j := 0; j < len(cards); j++ {
