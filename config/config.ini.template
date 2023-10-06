@@ -10,3 +10,7 @@ Host = chatgpt host
 Host = your cos host
 SecretID = your SecretID
 SecretKey = your SecretKey
+
+[admin]
+Admins = qq ids of admins, split by ','
+SuperAdmin = qq id
