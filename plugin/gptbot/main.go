@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
+	"gptbot/admins"
 	"gptbot/plugin/gptbot/botservice"
 	_ "gptbot/plugin/gptbot/chatgpt"
 	"gptbot/plugin/gptbot/config"
@@ -59,7 +60,7 @@ func init() {
 		ctx.SendChain(message.Text(resp))
 		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("查看gpt模型")
 	})
-	engine.OnCommand("设置gpt模型", zero.SuperUserPermission).SetBlock(true).Handle(func(ctx *zero.Ctx) {
+	engine.OnCommand("设置gpt模型", zero.CheckUser(admins.SuperAdmin)).SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		m := ctx.State["args"].(string)
 		chat := gptBot.GetChat(util.GetChatId(ctx))
 		if err := chat.SetModel(m); err != nil {

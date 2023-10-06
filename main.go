@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"gptbot/admins"
 	"gptbot/log"
 	_ "gptbot/store"
 	"math/rand"
@@ -123,7 +124,7 @@ func init() {
 	}
 
 	// 通过代码写死的方式添加主人账号
-	sus = append(sus, 508850601)
+	sus = append(sus, admins.Admins...)
 	// sus = append(sus, 87654321)
 
 	// 启用 webui
