@@ -124,7 +124,7 @@ func init() {
 			Name:    strconv.FormatInt(ctx.Event.UserID, 10),
 		})
 		resp := gptBot.Talk(ctx)
-		ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text(resp))
+		ctx.SendChain(message.At(ctx.Event.UserID), message.Text(resp))
 		logrus.WithFields(logrus.Fields{"Event": ctx.Event, "Resp": resp}).Infoln("群聊回复(AT)")
 	})
 

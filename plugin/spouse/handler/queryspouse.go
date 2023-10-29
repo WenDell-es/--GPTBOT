@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/pkg/errors"
+	"github.com/tencentyun/cos-go-sdk-v5"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"gptbot/imageFont"
@@ -20,13 +23,15 @@ type QuerySpouseHandler struct {
 }
 
 type querySpouseInternal struct {
-	groupId    int64
-	baseCards  []model.Card
-	groupCards []model.Card
-	imgFont    *imageFont.ImageFont
-	card       model.Card
-	event      <-chan *zero.Ctx
-	cancel     func()
+	probability float64
+	weights     map[string]float64
+	groupId     int64
+	baseCards   []model.Card
+	groupCards  []model.Card
+	imgFont     *imageFont.ImageFont
+	card        *model.Card
+	event       <-chan *zero.Ctx
+	cancel      func()
 }
 
 func NewQuerySpouseHandler(ctx *zero.Ctx, spouseType model.Type) *QuerySpouseHandler {
@@ -69,19 +74,57 @@ func (h *QuerySpouseHandler) GetGroupCards() *QuerySpouseHandler {
 	h.groupCards, h.err = util.GetCards(h.mainCtx.Event.GroupID, h.spouseType)
 	return h
 }
+
+func (h *QuerySpouseHandler) GetGroupWeights() *QuerySpouseHandler {
+	if h.err != nil {
+		return h
+	}
+	buf, err := store.GetStoreClient().GetObjectBytes(util.GetWeightPath(h.mainCtx.Event.GroupID, h.spouseType))
+	if err != nil && !cos.IsNotFoundError(err) {
+		h.err = err
+		return h
+	}
+	weight := make(map[string]float64)
+	h.err = json.Unmarshal(buf, &weight)
+	h.weights = weight
+	return h
+}
+
 func (h *QuerySpouseHandler) CheckCards() *QuerySpouseHandler {
 	if h.err != nil {
 		return h
 	}
 	cards := append(h.baseCards, h.groupCards...)
+	total := 0.0
+	newWeight := 0.0
+	for i := 0; i < len(cards); i++ {
+		if _, ok := h.weights[cards[i].Name]; !ok {
+			continue
+		}
+		total += h.weights[cards[i].Name]
+	}
+	newWeight = total/float64(len(cards)) + 1
+	total = 0.0
+	for i := 0; i < len(cards); i++ {
+		if _, ok := h.weights[cards[i].Name]; !ok {
+			h.weights[cards[i].Name] = newWeight
+		}
+		total += h.weights[cards[i].Name]
+	}
 
+	target := model.Card{}
 	for _, card := range cards {
 		if card.Name == h.name {
-			h.card = card
-			return h
+			target = card
+			break
 		}
 	}
-	h.err = errors.New("没有找到" + h.name)
+	h.card = &target
+	if h.card.Name == "" {
+		h.err = errors.New("没有找到" + h.name)
+		return h
+	}
+	h.probability = h.weights[h.card.Name] / total
 	return h
 }
 
@@ -97,7 +140,8 @@ func (h *QuerySpouseHandler) SendPicture() *QuerySpouseHandler {
 			"作品名：", h.card.Source, "\n"+
 			"上传人昵称：", h.card.UploaderName, "\n"+
 			"上传人QQ号：", h.card.UploaderId, "\n"+
-			"卡池编号：", h.card.GroupId),
+			"卡池编号：", h.card.GroupId, "\n"+
+			"当前抽中概率：", fmt.Sprintf("%.6f", h.probability*100), "%"),
 		message.Image(url),
 	); id.ID() == 0 {
 		h.mainCtx.SendChain(

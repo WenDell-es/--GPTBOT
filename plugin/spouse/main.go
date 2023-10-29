@@ -94,7 +94,7 @@ func init() {
 			keyword := ctx.State["regex_matched"].([]string)[1]
 			spouseType := model.Type(keyword)
 			handler := commandHandler.NewQuerySpouseHandler(ctx, spouseType)
-			if handler.CreateEventChan().FetchSpouseName().GetBaseCards().GetGroupCards().CheckCards().SendPicture().Err() != nil {
+			if handler.CreateEventChan().FetchSpouseName().GetBaseCards().GetGroupCards().GetGroupWeights().CheckCards().SendPicture().Err() != nil {
 				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(handler.Err().Error()))
 				logrus.Errorln(handler.Err().Error())
 			}
