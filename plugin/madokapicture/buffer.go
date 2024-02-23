@@ -3,10 +3,12 @@ package madokapicture
 import (
 	"bytes"
 	"encoding/json"
+	fmath "github.com/FloatTech/floatbox/math"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gptbot/store"
 	"io/fs"
+	"math"
 	"math/rand"
 	"net/http"
 	"os"
@@ -120,12 +122,16 @@ func (p *PicturePool) fetchLowFrequencyObjects() ([]*keyFrequency, error) {
 		return nil, err
 	}
 	sortArray := make([]*keyFrequency, len(objs))
+	defaultVal := int64(math.MaxInt64)
+	for _, val := range p.frequencyTable {
+		defaultVal = fmath.Min(defaultVal, val)
+	}
 	for i, obj := range objs {
 		var fre int64
 		if val, ok := p.frequencyTable[obj.Key]; ok {
 			fre = val
 		} else {
-			p.frequencyTable[obj.Key] = 0
+			p.frequencyTable[obj.Key] = defaultVal
 		}
 		sortArray[i] = &keyFrequency{
 			Key:       obj.Key,
