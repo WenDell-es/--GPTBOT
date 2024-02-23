@@ -21,7 +21,7 @@ import (
 
 	_ "github.com/FloatTech/ZeroBot-Plugin/console"
 	"github.com/FloatTech/ZeroBot-Plugin/kanban"
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/b14"
+	//_ "github.com/FloatTech/ZeroBot-Plugin/plugin/b14"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/baidu"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/base64gua"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/bilibili"
@@ -35,7 +35,7 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/dish"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/drawlots"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/dress"
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/drift_bottle"
+	//_ "github.com/FloatTech/ZeroBot-Plugin/plugin/drift_bottle"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/emojimix"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/font"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/fortune"
