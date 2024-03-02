@@ -3,12 +3,10 @@ package madokapicture
 import (
 	"bytes"
 	"encoding/json"
-	fmath "github.com/FloatTech/floatbox/math"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gptbot/store"
 	"io/fs"
-	"math"
 	"math/rand"
 	"net/http"
 	"os"
@@ -18,12 +16,12 @@ import (
 
 // PicturePool 图片缓冲池
 type PicturePool struct {
-	ticker            *time.Ticker     // 定时器，用于到期更新缓存
-	bufferChan        chan string      // 缓冲池管道，存储已被缓存的图片URL
-	frequencyTable    map[string]int64 // 图片-获取频率表
-	frequencyPath     string           // 图片-获取频率表的持久化存储路径
-	blockingQueueSize int
-	senderURL         string
+	ticker                  *time.Ticker     // 定时器，用于到期更新缓存
+	bufferChan              chan string      // 缓冲池管道，存储已被缓存的图片URL
+	lastRequestTimeTable    map[string]int64 // 图片-最后近获取时间表
+	lastRequestTimeFilePath string           // 图片-获取最后近获取时间表的持久化存储路径
+	blockingQueueSize       int
+	senderURL               string
 }
 
 // NewPicBuffer 构造函数
@@ -35,14 +33,13 @@ func NewPicBuffer(
 	blockingQueueSize int,
 	senderURL string,
 ) *PicturePool {
-	println("aaa")
 	pb := &PicturePool{
-		ticker:            time.NewTicker(cleanDuration),
-		bufferChan:        make(chan string, bufferSize),
-		frequencyTable:    newFrequency(path),
-		frequencyPath:     path,
-		blockingQueueSize: blockingQueueSize,
-		senderURL:         senderURL,
+		ticker:                  time.NewTicker(cleanDuration),
+		bufferChan:              make(chan string, bufferSize),
+		lastRequestTimeTable:    newRequestTimeTable(path),
+		lastRequestTimeFilePath: path,
+		blockingQueueSize:       blockingQueueSize,
+		senderURL:               senderURL,
 	}
 	return pb
 }
@@ -63,10 +60,10 @@ func (p *PicturePool) GetUrls(n int) []string {
 	urls := make([]string, n)
 	for i := 0; i < n; i++ {
 		key := <-p.bufferChan
-		p.frequencyTable[key]++
+		p.lastRequestTimeTable[key] = time.Now().UnixNano()
 		urls[i] = store.GetStoreClient().GetObjectUrl(key)
 	}
-	if err := p.saveFrequencyTable(); err != nil {
+	if err := p.saveLastRequestTimeTable(); err != nil {
 		logrus.Errorln(errors.Wrap(err, "保存图片频率表错误"))
 	}
 	return urls
@@ -109,37 +106,35 @@ func (p *PicturePool) bufferWriter() {
 	}
 }
 
-type keyFrequency struct {
-	Key       string
-	Frequency int64
+type keyTime struct {
+	Key  string
+	Time int64
 }
 
 // 获取低频图片
-func (p *PicturePool) fetchLowFrequencyObjects() ([]*keyFrequency, error) {
+func (p *PicturePool) fetchLowFrequencyObjects() ([]*keyTime, error) {
 	objs, err := store.GetStoreClient().FetchAllFileInfo(Storage)
 	if err != nil {
 		logrus.Errorln("获取对象信息错误", err)
 		return nil, err
 	}
-	sortArray := make([]*keyFrequency, len(objs))
-	defaultVal := int64(math.MaxInt64)
-	for _, val := range p.frequencyTable {
-		defaultVal = fmath.Min(defaultVal, val)
-	}
+	sortArray := make([]*keyTime, len(objs))
+	defaultVal := int64(0)
 	for i, obj := range objs {
-		var fre int64
-		if val, ok := p.frequencyTable[obj.Key]; ok {
-			fre = val
+		t := defaultVal
+		if val, ok := p.lastRequestTimeTable[obj.Key]; ok {
+			t = val
 		} else {
-			p.frequencyTable[obj.Key] = defaultVal
+			p.lastRequestTimeTable[obj.Key] = defaultVal
 		}
-		sortArray[i] = &keyFrequency{
-			Key:       obj.Key,
-			Frequency: fre,
+
+		sortArray[i] = &keyTime{
+			Key:  obj.Key,
+			Time: t,
 		}
 	}
 	sort.Slice(sortArray, func(i, j int) bool {
-		return sortArray[i].Frequency < sortArray[j].Frequency
+		return sortArray[i].Time < sortArray[j].Time
 	})
 	if len(sortArray) < p.blockingQueueSize {
 		return sortArray, nil
@@ -148,16 +143,16 @@ func (p *PicturePool) fetchLowFrequencyObjects() ([]*keyFrequency, error) {
 }
 
 // 保存当前频率文件
-func (p *PicturePool) saveFrequencyTable() error {
-	buf, err := json.MarshalIndent(p.frequencyTable, "", "  ")
+func (p *PicturePool) saveLastRequestTimeTable() error {
+	buf, err := json.MarshalIndent(p.lastRequestTimeTable, "", "  ")
 	if err != nil {
 		return errors.Wrap(err, "json marshall error")
 	}
-	return os.WriteFile(p.frequencyPath, buf, 0644)
+	return os.WriteFile(p.lastRequestTimeFilePath, buf, 0644)
 }
 
 // 初始化图片频率表
-func newFrequency(path string) map[string]int64 {
+func newRequestTimeTable(path string) map[string]int64 {
 	ret := make(map[string]int64)
 	buf, err := os.ReadFile(path)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
