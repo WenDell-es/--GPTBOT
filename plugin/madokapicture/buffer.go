@@ -98,7 +98,7 @@ func (p *PicturePool) bufferWriter() {
 		}
 		perm := rand.Perm(len(keys))
 		for i := 0; i < len(perm); i++ {
-			obj := keys[i]
+			obj := keys[perm[i]]
 			p.bufferChan <- obj.Key
 			p.addToQQImageBuffer(store.GetStoreClient().GetObjectUrl(obj.Key))
 		}
