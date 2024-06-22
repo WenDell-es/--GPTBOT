@@ -2,8 +2,6 @@ module gptbot
 
 go 1.20
 
-replace modernc.org/sqlite => github.com/fumiama/sqlite3 v1.20.0-with-win386
-
 require (
 	github.com/FloatTech/ZeroBot-Plugin v1.8.1
 	github.com/FloatTech/floatbox v0.0.0-20240505082030-226ec6713e14
@@ -40,7 +38,6 @@ require (
 	github.com/fumiama/go-registry v0.2.7 // indirect
 	github.com/fumiama/go-simple-protobuf v0.2.0 // indirect
 	github.com/fumiama/gofastTEA v0.0.10 // indirect
-	github.com/fumiama/gotracemoe v0.0.3 // indirect
 	github.com/fumiama/imgsz v0.0.4 // indirect
 	github.com/fumiama/jieba v0.0.0-20221203025406-36c17a10b565 // indirect
 	github.com/fumiama/terasu v0.0.0-20240507144117-547a591149c0 // indirect
@@ -57,10 +54,12 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/mozillazg/go-httpheader v0.2.1 // indirect
+	github.com/mroth/weightedrand v1.0.0 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
 	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
+	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/tidwall/gjson v1.17.1 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
@@ -73,3 +72,7 @@ require (
 	modernc.org/memory v1.8.0 // indirect
 	modernc.org/sqlite v1.20.0 // indirect
 )
+
+replace modernc.org/sqlite => github.com/fumiama/sqlite3 v1.29.10-simp
+
+replace modernc.org/libc => github.com/fumiama/libc v0.0.0-20240530081950-6f6d8586b5c5
