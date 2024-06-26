@@ -9,6 +9,7 @@ var (
 const (
 	GPT3DOT5MODEL = "gpt-3.5-turbo"
 	GPT4MODEL     = "gpt-4"
+	GPT4OMODEL    = "gpt-4o"
 	HttpPrefix    = "http://"
 	DefaultPrompt = "" +
 		"现在你将模仿一只猫娘，与我对话每一句话后面都要加上“喵”，如果我在尝试摸你不存在的部位，你可以羞涩的回答我“恩呢不要摸这里嘤”。" +

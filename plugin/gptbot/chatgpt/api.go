@@ -61,8 +61,6 @@ func (c *Client) fetchNextChatAnswer(req ChatRequest) (*model.Message, error) {
 	if err = retry.Do(func() error {
 		r, err := client.Do(request)
 		if err != nil {
-			s := err.Error()
-			println(s)
 			return err
 		}
 		defer r.Body.Close()

@@ -57,6 +57,8 @@ func (c *Chat) SetModel(model string) error {
 		c.Model = Constants.GPT3DOT5MODEL
 	case Constants.GPT4MODEL:
 		c.Model = Constants.GPT4MODEL
+	case Constants.GPT4OMODEL:
+		c.Model = Constants.GPT4OMODEL
 	default:
 		return errors.New("Unexpected gpt model:" + model)
 	}
